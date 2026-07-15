@@ -1,0 +1,195 @@
+{% extends "account_base.html" %}
+
+{% block title %}Треки релиза — RAMIX MUSIC{% endblock %}
+
+{% block account_content %}
+<section class="release-page-head">
+    <div>
+        <h1>Создание релиза</h1>
+        <p>{{ release.title }} · {{ release.artist_name }}</p>
+    </div>
+</section>
+
+{% include "components/release_steps.html" %}
+
+{% if notice %}
+<div class="flow-notice flow-notice-success" role="status"><svg><use href="#i-check"></use></svg>{{ notice }}</div>
+{% endif %}
+
+<section class="release-panel tracks-panel">
+    <div class="release-panel-heading release-panel-heading-action">
+        <div>
+            <h2>Треки и аудиофайлы <span>({{ tracks | length }})</span></h2>
+            <p>Добавьте все композиции в нужном порядке. Аудио хранится в вашем аккаунте.</p>
+        </div>
+        <button class="flow-button flow-button-outline" type="button" data-track-modal-open>
+            <svg><use href="#i-plus"></use></svg> Добавить трек
+        </button>
+    </div>
+
+    {% if tracks %}
+    <div class="track-list">
+        {% for track in tracks %}
+        <article class="track-row">
+            <div class="track-cover-mini">
+                {% if release.cover_url %}<img src="{{ release.cover_url }}" alt="">{% else %}<span>{{ release.cover_initial }}</span>{% endif %}
+            </div>
+            <div class="track-main-meta">
+                <strong>{{ '%02d' | format(track.position) }}. {{ track.title }}</strong>
+                <span>{{ track.artists }}{{ ' · ' ~ track.version if track.version else '' }}</span>
+                <small>{{ track.audio_filename }} · {{ track.audio_size_label }}</small>
+            </div>
+            <dl class="track-meta-cell">
+                <div><dt>Отрывок для TikTok</dt><dd>{{ track.tiktok_start_label }}–{{ track.tiktok_end_label }}</dd></div>
+                <div><dt>Язык</dt><dd>{{ track.language_label }}</dd></div>
+            </dl>
+            <dl class="track-meta-cell track-meta-authors">
+                <div><dt>Автор слов</dt><dd>{{ track.lyricist }}</dd></div>
+                <div><dt>Автор музыки</dt><dd>{{ track.composer }}</dd></div>
+            </dl>
+            <div class="track-explicit">
+                <span>18+ лексика</span>
+                <strong>{{ track.explicit_label }}</strong>
+            </div>
+            <div class="track-actions">
+                <button class="track-icon-button" type="button" data-audio-play data-audio-url="/account/releases/{{ release.id }}/tracks/{{ track.id }}/audio" aria-label="Прослушать {{ track.title }}">
+                    <svg class="icon-play"><use href="#i-play"></use></svg>
+                    <svg class="icon-pause"><use href="#i-pause"></use></svg>
+                </button>
+                <a class="track-icon-button" href="/account/releases/{{ release.id }}/tracks?edit={{ track.id }}" aria-label="Редактировать {{ track.title }}"><svg><use href="#i-edit"></use></svg></a>
+                <form action="/account/releases/{{ release.id }}/tracks/{{ track.id }}/delete" method="post" data-confirm="Удалить трек «{{ track.title }}» из релиза?">
+                    <button class="track-icon-button track-icon-danger" type="submit" aria-label="Удалить {{ track.title }}"><svg><use href="#i-trash"></use></svg></button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="release-empty-state">
+        <span><svg><use href="#i-music"></use></svg></span>
+        <div>
+            <h3>В релизе пока нет треков</h3>
+            <p>Добавьте первый трек и загрузите WAV или FLAC. После этого станет доступна финальная проверка.</p>
+        </div>
+        <button class="flow-button flow-button-primary" type="button" data-track-modal-open>Добавить первый трек</button>
+    </div>
+    {% endif %}
+
+    <div class="release-form-actions">
+        <a class="flow-button flow-button-secondary" href="/account/releases/{{ release.id }}/edit"><svg><use href="#i-arrow-left"></use></svg> Назад</a>
+        {% if tracks %}
+        <a class="flow-button flow-button-primary" href="/account/releases/{{ release.id }}/review">Далее <svg><use href="#i-arrow-right"></use></svg></a>
+        {% else %}
+        <span class="flow-button flow-button-disabled" aria-disabled="true">Добавьте трек, чтобы продолжить</span>
+        {% endif %}
+    </div>
+</section>
+
+<div class="track-modal {{ 'is-open' if open_track_modal else '' }}" data-track-modal aria-hidden="{{ 'false' if open_track_modal else 'true' }}">
+    <button class="track-modal-backdrop" type="button" data-track-modal-close aria-label="Закрыть окно"></button>
+    <section class="track-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="track-modal-title">
+        <div class="track-modal-head">
+            <div>
+                <h2 id="track-modal-title">{{ 'Редактирование трека' if editing_track else 'Добавление трека в релиз' }}</h2>
+                <p>Все поля сохраняются только после нажатия кнопки внизу формы.</p>
+            </div>
+            <button type="button" data-track-modal-close aria-label="Закрыть"><svg><use href="#i-close"></use></svg></button>
+        </div>
+
+        {% if track_errors %}
+        <div class="flow-notice flow-notice-error track-modal-error" role="alert">Проверьте выделенные поля.</div>
+        {% endif %}
+
+        <form class="track-form" action="{{ '/account/releases/' ~ release.id ~ '/tracks/' ~ editing_track.id if editing_track else '/account/releases/' ~ release.id ~ '/tracks' }}" method="post" enctype="multipart/form-data" novalidate data-submit-lock>
+            <div class="track-form-grid">
+                <div class="track-form-column">
+                    <label class="flow-field {{ 'has-error' if track_errors.title else '' }}">
+                        <span class="flow-label">Название трека <em>обязательно</em></span>
+                        <input type="text" name="title" value="{{ track_form.title }}" maxlength="160" placeholder="Например: Midnight Signal" required>
+                        <small class="field-message {{ 'is-error' if track_errors.title else '' }}">{{ track_errors.title or 'Укажите только название композиции.' }}</small>
+                    </label>
+
+                    <label class="flow-field {{ 'has-error' if track_errors.artists else '' }}">
+                        <span class="flow-label">Исполнитель или артисты <em>обязательно</em></span>
+                        <input type="text" name="artists" value="{{ track_form.artists }}" maxlength="200" placeholder="Music1, Music2 или Music1 feat. Music2" required>
+                        <small class="field-message {{ 'is-error' if track_errors.artists else '' }}">{{ track_errors.artists or 'Напишите имена в том виде, как они должны быть на площадках.' }}</small>
+                    </label>
+
+                    <label class="flow-field {{ 'has-error' if track_errors.version else '' }}">
+                        <span class="flow-label">Версия</span>
+                        <input type="text" name="version" value="{{ track_form.version }}" maxlength="80" placeholder="Например: Remix, Live, Acoustic">
+                        <small class="field-message {{ 'is-error' if track_errors.version else '' }}">{{ track_errors.version or 'Оставьте пустым для оригинальной версии.' }}</small>
+                    </label>
+
+                    <label class="flow-field {{ 'has-error' if track_errors.language else '' }}">
+                        <span class="flow-label">Язык исполнения <em>обязательно</em></span>
+                        <select name="language" required>
+                            <option value="ru" {{ 'selected' if track_form.language == 'ru' else '' }}>Русский</option>
+                            <option value="en" {{ 'selected' if track_form.language == 'en' else '' }}>Английский</option>
+                            <option value="instrumental" {{ 'selected' if track_form.language == 'instrumental' else '' }}>Инструментал</option>
+                            <option value="other" {{ 'selected' if track_form.language == 'other' else '' }}>Другой</option>
+                        </select>
+                        <small class="field-message {{ 'is-error' if track_errors.language else '' }}">{{ track_errors.language or 'Для инструментала выберите соответствующий пункт.' }}</small>
+                    </label>
+
+                    <label class="flow-field {{ 'has-error' if track_errors.lyricist else '' }}">
+                        <span class="flow-label">Автор слов — ФИО <em>обязательно</em></span>
+                        <input type="text" name="lyricist" value="{{ track_form.lyricist }}" maxlength="200" placeholder="Иванов Иван Иванович" required>
+                        <small class="field-message {{ 'is-error' if track_errors.lyricist else '' }}">{{ track_errors.lyricist or 'Для инструментала укажите автора произведения.' }}</small>
+                    </label>
+
+                    <label class="flow-field {{ 'has-error' if track_errors.composer else '' }}">
+                        <span class="flow-label">Автор музыки — ФИО <em>обязательно</em></span>
+                        <input type="text" name="composer" value="{{ track_form.composer }}" maxlength="200" placeholder="Иванов Иван Иванович" required>
+                        <small class="field-message {{ 'is-error' if track_errors.composer else '' }}">{{ track_errors.composer or 'Укажите настоящее имя автора музыки.' }}</small>
+                    </label>
+                </div>
+
+                <div class="track-form-column">
+                    <label class="flow-field flow-field-textarea {{ 'has-error' if track_errors.lyrics else '' }}">
+                        <span class="flow-label">Текст песни</span>
+                        <textarea name="lyrics" maxlength="20000" placeholder="Добавьте текст песни или оставьте поле пустым для инструментала">{{ track_form.lyrics }}</textarea>
+                        <small class="field-message {{ 'is-error' if track_errors.lyrics else '' }}">{{ track_errors.lyrics or 'Сохраняйте структуру куплетов и припевов переносами строк.' }}</small>
+                    </label>
+
+                    <label class="flow-field audio-field {{ 'has-error' if track_errors.audio else '' }}">
+                        <span class="flow-label">Аудиофайл {{ '' if editing_track else '· обязательно' }}</span>
+                        <span class="audio-upload-control">
+                            <span class="audio-upload-copy">
+                                <svg><use href="#i-music"></use></svg>
+                                <span>
+                                    <strong data-audio-file-name>{{ editing_track.audio_filename if editing_track else 'Загрузите WAV или FLAC' }}</strong>
+                                    <small>{{ 'Новый файл заменит текущий.' if editing_track else 'Максимальный размер — 500 МБ.' }}</small>
+                                </span>
+                            </span>
+                            <span class="audio-upload-button">Выбрать файл</span>
+                            <input type="file" name="audio" accept="audio/wav,audio/x-wav,audio/flac" {{ '' if editing_track else 'required' }} data-audio-file-input>
+                        </span>
+                        <small class="field-message {{ 'is-error' if track_errors.audio else '' }}">{{ track_errors.audio or ('Текущий файл сохранится, если не выбирать новый.' if editing_track else 'MP3 для исходной загрузки не поддерживается.') }}</small>
+                    </label>
+
+                    <div class="flow-field timecode-field {{ 'has-error' if track_errors.tiktok_start or track_errors.tiktok_end else '' }}">
+                        <span class="flow-label">Отрывок для коротких видео</span>
+                        <div class="timecode-grid">
+                            <label><span>Начало</span><input type="text" name="tiktok_start" value="{{ track_form.tiktok_start }}" inputmode="numeric" placeholder="00:00"></label>
+                            <label><span>Конец</span><input type="text" name="tiktok_end" value="{{ track_form.tiktok_end }}" inputmode="numeric" placeholder="01:00"></label>
+                        </div>
+                        <small class="field-message {{ 'is-error' if track_errors.tiktok_start or track_errors.tiktok_end else '' }}">{{ track_errors.tiktok_start or track_errors.tiktok_end or 'Формат ММ:СС, продолжительность — не больше 3 минут.' }}</small>
+                    </div>
+
+                    <label class="flow-check track-explicit-check">
+                        <input type="checkbox" name="is_explicit" {{ 'checked' if track_form.is_explicit else '' }}>
+                        <span class="flow-check-box"><svg><use href="#i-check"></use></svg></span>
+                        <span><strong>В треке есть ненормативная лексика</strong><small>Отметьте поле, если композиция содержит explicit-контент.</small></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="track-modal-actions">
+                <button class="flow-button flow-button-secondary" type="button" data-track-modal-close><svg><use href="#i-arrow-left"></use></svg> Назад</button>
+                <button class="flow-button flow-button-primary" type="submit">{{ 'Сохранить изменения' if editing_track else 'Добавить трек' }} <svg><use href="#i-arrow-right"></use></svg></button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

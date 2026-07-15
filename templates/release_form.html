@@ -1,0 +1,115 @@
+{% extends "account_base.html" %}
+
+{% block title %}Создание релиза — RAMIX MUSIC{% endblock %}
+
+{% block account_content %}
+<section class="release-page-head">
+    <div>
+        <h1>{{ 'Редактирование релиза' if release else 'Создание релиза' }}</h1>
+        <p>Заполните данные внимательно — они будут переданы на музыкальные площадки.</p>
+    </div>
+</section>
+
+{% include "components/release_steps.html" %}
+
+{% if errors.form %}
+<div class="flow-notice flow-notice-error" role="alert">{{ errors.form }}</div>
+{% endif %}
+
+<form class="release-panel release-main-form" action="{{ '/account/releases/' ~ release.id ~ '/edit' if release else '/account/releases/new' }}" method="post" enctype="multipart/form-data" novalidate data-submit-lock>
+    <div class="release-panel-heading">
+        <div>
+            <h2>Основная информация</h2>
+            <p>Обложку и метаданные можно изменить, пока релиз остаётся черновиком.</p>
+        </div>
+        {% if release %}<span class="status-badge status-{{ release.status_meta.class }}">{{ release.status_meta.label }}</span>{% endif %}
+    </div>
+
+    <div class="release-info-grid">
+        <div class="cover-field {{ 'has-error' if errors.cover else '' }}">
+            <label class="cover-uploader" for="cover-input" data-cover-drop>
+                <input id="cover-input" type="file" name="cover" accept="image/jpeg,image/png,image/webp" {{ 'required' if not release or not release.cover_url else '' }} data-cover-input>
+                <span class="cover-preview" data-cover-preview>
+                    {% if release and release.cover_url %}
+                    <img src="{{ release.cover_url }}" alt="Текущая обложка релиза" data-cover-preview-image>
+                    {% else %}
+                    <img alt="Предпросмотр обложки" data-cover-preview-image hidden>
+                    {% endif %}
+                    <span class="cover-placeholder" data-cover-placeholder {{ 'hidden' if release and release.cover_url else '' }}>
+                        <svg><use href="#i-image"></use></svg>
+                        <strong>{{ 'Заменить обложку' if release and release.cover_url else 'Загрузите обложку' }}</strong>
+                        <small>JPG, PNG или WEBP<br>квадрат от 1000×1000 px</small>
+                    </span>
+                    <span class="cover-change">Выбрать изображение</span>
+                </span>
+            </label>
+            <p class="field-message {{ 'is-error' if errors.cover else '' }}" data-cover-name>{{ errors.cover or ('Текущая обложка сохранится, если не выбирать новый файл.' if release and release.cover_url else 'Рекомендуемый размер — 3000×3000 px, до 15 МБ.') }}</p>
+        </div>
+
+        <div class="release-fields">
+            <label class="flow-field {{ 'has-error' if errors.title else '' }}">
+                <span class="flow-label">Название релиза <em>обязательно</em></span>
+                <input type="text" name="title" value="{{ form.title }}" maxlength="160" placeholder="Например: Midnight Signal" autocomplete="off" required>
+                <small class="field-message {{ 'is-error' if errors.title else '' }}">{{ errors.title or 'Название без кавычек и лишних символов.' }}</small>
+            </label>
+
+            <fieldset class="flow-field release-type-field {{ 'has-error' if errors.release_type else '' }}">
+                <legend class="flow-label">Тип релиза <em>обязательно</em></legend>
+                <div class="release-radio-row">
+                    {% for value, label in [('single', 'Single'), ('ep', 'EP'), ('album', 'Альбом')] %}
+                    <label class="release-radio">
+                        <input type="radio" name="release_type" value="{{ value }}" {{ 'checked' if form.release_type == value else '' }}>
+                        <span></span>{{ label }}
+                    </label>
+                    {% endfor %}
+                </div>
+                <small class="field-message {{ 'is-error' if errors.release_type else '' }}">{{ errors.release_type or 'Single — один трек, EP и альбом — несколько треков.' }}</small>
+            </fieldset>
+
+            <label class="flow-field {{ 'has-error' if errors.release_version else '' }}">
+                <span class="flow-label">Версия релиза</span>
+                <input type="text" name="release_version" value="{{ form.release_version }}" maxlength="80" placeholder="Например: Remix, Acoustic, Deluxe" autocomplete="off">
+                <small class="field-message {{ 'is-error' if errors.release_version else '' }}">{{ errors.release_version or 'Оставьте пустым для оригинальной версии.' }}</small>
+            </label>
+
+            <label class="flow-field {{ 'has-error' if errors.genre else '' }}">
+                <span class="flow-label">Основной жанр <em>обязательно</em></span>
+                <input type="text" name="genre" value="{{ form.genre }}" maxlength="80" placeholder="Например: Поп, Хип-хоп, Рок" autocomplete="off" required>
+                <small class="field-message {{ 'is-error' if errors.genre else '' }}">{{ errors.genre or 'Укажите один основной жанр релиза.' }}</small>
+            </label>
+
+            <label class="flow-field {{ 'has-error' if errors.metadata_language else '' }}">
+                <span class="flow-label">Язык метаданных <em>обязательно</em></span>
+                <select name="metadata_language" required>
+                    <option value="ru" {{ 'selected' if form.metadata_language == 'ru' else '' }}>Русский</option>
+                    <option value="en" {{ 'selected' if form.metadata_language == 'en' else '' }}>Английский</option>
+                    <option value="instrumental" {{ 'selected' if form.metadata_language == 'instrumental' else '' }}>Инструментал</option>
+                    <option value="other" {{ 'selected' if form.metadata_language == 'other' else '' }}>Другой</option>
+                </select>
+                <small class="field-message {{ 'is-error' if errors.metadata_language else '' }}">{{ errors.metadata_language or 'Язык названия релиза и основной информации.' }}</small>
+            </label>
+
+            <label class="flow-field {{ 'has-error' if errors.release_date else '' }}">
+                <span class="flow-label">Планируемая дата выхода <em>обязательно</em></span>
+                <input type="date" name="release_date" value="{{ form.release_date }}" min="{{ minimum_release_date }}" required>
+                <small class="field-message {{ 'is-error' if errors.release_date else '' }}">{{ errors.release_date or ('Для питчинга рекомендуем дату не раньше ' ~ pitching_recommended_date_label ~ '.') }}</small>
+            </label>
+
+            <label class="flow-check release-explicit-check">
+                <input type="checkbox" name="is_explicit" {{ 'checked' if form.is_explicit else '' }}>
+                <span class="flow-check-box"><svg><use href="#i-check"></use></svg></span>
+                <span><strong>Explicit</strong><small>В релизе есть ненормативная лексика или чувствительный контент.</small></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="release-form-actions">
+        <a class="flow-button flow-button-secondary" href="{{ '/account/releases' if not release else '/account/releases/' ~ release.id ~ '/tracks' }}">
+            <svg><use href="#i-arrow-left"></use></svg> {{ 'К списку релизов' if not release else 'К трекам' }}
+        </a>
+        <button class="flow-button flow-button-primary" type="submit">
+            Сохранить и далее <svg><use href="#i-arrow-right"></use></svg>
+        </button>
+    </div>
+</form>
+{% endblock %}

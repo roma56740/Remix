@@ -1,0 +1,22 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Политика конфиденциальности — RAMIX MUSIC{% endblock %}
+
+{% block content %}
+<section class="auth-card privacy-card" aria-labelledby="privacy-title">
+    <div class="auth-heading">
+        <h1 id="privacy-title">Политика конфиденциальности</h1>
+        <a class="auth-logo" href="/" aria-label="RAMIX MUSIC — на главную">
+            <img src="{{ url_for('static', path='img/logo.png') }}" alt="RAMIX MUSIC">
+        </a>
+    </div>
+
+    <div class="privacy-copy">
+        <p>RAMIX MUSIC использует имя и email только для создания аккаунта, авторизации и работы личного кабинета.</p>
+        <p>Пароль не хранится в открытом виде. Он сохраняется в виде защищённого криптографического хеша.</p>
+        <p>Локальная версия проекта не передаёт данные сторонним сервисам.</p>
+    </div>
+
+    <a class="auth-button auth-button-primary auth-button-wide" href="/register">Вернуться к регистрации</a>
+</section>
+{% endblock %}

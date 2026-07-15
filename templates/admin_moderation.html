@@ -1,0 +1,8 @@
+{% extends "admin_base.html" %}
+{% block title %}Модерация — Админ-панель{% endblock %}
+{% block admin_content %}
+<section class="admin-page-head"><div><span class="admin-kicker">Контроль качества</span><h1>Модерация релизов</h1><p>Отдельная очередь только для релизов, ожидающих решения.</p></div><span class="admin-count-pill">{{ releases.pagination.total }} в очереди</span></section>
+<section class="admin-panel">
+{% if releases['items'] %}<div class="moderation-grid">{% for item in releases['items'] %}<article class="moderation-card"><a class="moderation-cover" href="/admin/releases/{{ item.id }}">{% if item.cover_url %}<img src="{{ item.cover_url }}" alt="">{% else %}<span>{{ item.title[:1] }}</span>{% endif %}</a><div><span class="status-badge status-warning">На модерации</span><h2>{{ item.title }}</h2><p>{{ item.artist_name }}</p><dl><div><dt>Пользователь</dt><dd>@{{ item.username }}</dd></div><div><dt>Треков</dt><dd>{{ item.track_count }}</dd></div><div><dt>Отправлен</dt><dd>{{ item.submitted_at_label }}</dd></div></dl><a class="admin-button admin-button-primary" href="/admin/releases/{{ item.id }}">Проверить релиз <svg><use href="#a-arrow-right"></use></svg></a></div></article>{% endfor %}</div>{% else %}<div class="admin-empty large"><svg><use href="#a-check"></use></svg><div><h3>Очередь модерации пуста</h3><p>Все отправленные релизы уже обработаны.</p></div></div>{% endif %}
+</section>
+{% endblock %}

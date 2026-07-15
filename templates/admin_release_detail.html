@@ -1,0 +1,64 @@
+{% extends "admin_base.html" %}
+{% block title %}{{ release.title }} — Админ-панель{% endblock %}
+{% block admin_content %}
+<section class="admin-page-head"><div><span class="admin-kicker">Релиз #{{ release.id }}</span><h1>{{ release.title }}</h1><p>{{ release.artist_name }} · {{ release.release_type_label }}</p></div><div class="admin-head-actions"><a class="admin-button" href="/admin/releases">К каталогу</a>{% if release.status == 'moderation' %}<span class="status-badge status-warning">На модерации</span>{% else %}<span class="status-badge status-{{ release.status_meta.class }}">{{ release.status_meta.label }}</span>{% endif %}</div></section>
+
+<div class="admin-release-detail-grid">
+    <aside class="admin-release-media admin-panel">
+        <div class="admin-large-cover">{% if release.cover_url %}<img src="{{ release.cover_url }}" alt="Обложка {{ release.title }}">{% else %}<span>{{ release.title[:1] }}</span>{% endif %}</div>
+        <a class="admin-button" href="/admin/releases/{{ release.id }}/cover"><svg><use href="#a-download"></use></svg>Скачать обложку</a>
+        <a class="admin-button" href="/admin/releases/{{ release.id }}/tracks.zip"><svg><use href="#a-download"></use></svg>Скачать треки</a>
+        <a class="admin-button" href="/admin/releases/{{ release.id }}/metadata.json"><svg><use href="#a-file"></use></svg>Скачать метаданные</a>
+    </aside>
+
+    <div class="admin-release-detail-main">
+        <section class="admin-panel">
+            <div class="admin-panel-head"><div><span class="admin-kicker">Проверка</span><h2>Данные релиза</h2></div><a href="/admin/users/{{ release.user_id }}">Профиль пользователя <svg><use href="#a-arrow-right"></use></svg></a></div>
+            <div class="admin-meta-grid"><div><span>Название</span><strong>{{ release.title }}</strong></div><div><span>Артист</span><strong>{{ release.artist_name }}</strong></div><div><span>Пользователь</span><strong>#{{ release.user_id }} · @{{ release.username }}</strong></div><div><span>Email</span><strong>{{ release.user_email }}</strong></div><div><span>Тип</span><strong>{{ release.release_type_label }}</strong></div><div><span>Жанр</span><strong>{{ release.genre or 'Не указан' }}</strong></div><div><span>Язык метаданных</span><strong>{{ release.metadata_language_label }}</strong></div><div><span>Дата выхода</span><strong>{{ release.release_date_label }}</strong></div><div><span>UPC</span><strong>{{ release.upc or 'Не назначен' }}</strong></div><div><span>Прослушивания</span><strong>{{ release.listens_label }}</strong></div></div>
+        </section>
+
+        <section class="admin-panel moderation-decision-panel">
+            <div class="admin-panel-head"><div><span class="admin-kicker">Решение</span><h2>Действие модератора</h2></div></div>
+            <form action="/admin/releases/{{ release.id }}/moderate" method="post" data-submit-lock>
+                <label class="admin-field"><span>Комментарий пользователю</span><textarea name="comment" maxlength="3000" placeholder="Укажите, что проверено, какие изменения нужны или почему релиз отклонён">{{ release.moderator_comment or '' }}</textarea><small>Текст всегда находится в отдельной зоне и не перекрывает поля или кнопки.</small></label>
+                <div class="moderation-actions"><button class="admin-button is-approve" name="decision" value="approve" type="submit"><svg><use href="#a-check"></use></svg>Одобрить</button><button class="admin-button is-changes" name="decision" value="changes" type="submit"><svg><use href="#a-edit"></use></svg>Требует правок</button><button class="admin-button is-reject" name="decision" value="reject" type="submit"><svg><use href="#a-x"></use></svg>Отклонить</button><button class="admin-button" name="decision" value="message" type="submit"><svg><use href="#a-message"></use></svg>Отправить сообщение</button></div>
+            </form>
+        </section>
+    </div>
+</div>
+
+<section class="admin-panel" id="tracks">
+    <div class="admin-panel-head">
+        <div><span class="admin-kicker">Аудио и аналитика</span><h2>Треки релиза</h2></div>
+        <span class="admin-count-pill">{{ release.tracks | length }}</span>
+    </div>
+    {% if release.tracks %}
+    <div class="admin-track-list admin-track-list-editable">
+        {% for track in release.tracks %}
+        <article>
+            <b>{{ '%02d'|format(loop.index) }}</b>
+            <div class="admin-track-primary"><strong>{{ track.title }}</strong><small>{{ track.artists }}{% if track.version %} · {{ track.version }}{% endif %}</small></div>
+            <dl>
+                <div><dt>Автор слов</dt><dd>{{ track.lyricist }}</dd></div>
+                <div><dt>Автор музыки</dt><dd>{{ track.composer }}</dd></div>
+                <div><dt>Язык</dt><dd>{{ track.language_label }}</dd></div>
+                <div><dt>ISRC</dt><dd>{{ track.isrc or 'Не назначен' }}</dd></div>
+            </dl>
+            <div class="admin-track-actions admin-track-edit-actions">
+                <form action="/admin/tracks/{{ track.id }}/listens" method="post" data-submit-lock>
+                    <input type="hidden" name="release_id" value="{{ release.id }}">
+                    <label><span>Прослушивания</span><input type="number" name="target" min="0" step="1" value="{{ track.listens }}" aria-label="Прослушивания трека {{ track.title }}"></label>
+                    <button class="admin-icon-button" type="submit" title="Сохранить прослушивания"><svg><use href="#a-check"></use></svg></button>
+                </form>
+                <a class="admin-icon-button" href="/admin/tracks/{{ track.id }}/audio" title="Скачать аудио"><svg><use href="#a-download"></use></svg></a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="admin-empty"><svg><use href="#a-disc"></use></svg><div><h3>Треков нет</h3><p>Релиз не готов к модерации.</p></div></div>
+    {% endif %}
+</section>
+
+{% if release.events %}<section class="admin-panel"><div class="admin-panel-head"><div><span class="admin-kicker">История</span><h2>Решения по релизу</h2></div></div><div class="admin-event-list">{% for event in release.events %}<article><span>{{ event.action }}</span><div><strong>{{ event.admin_name or 'Администратор' }}</strong><p>{{ event.comment or 'Без комментария' }}</p></div><time>{{ event.created_at_label }}</time></article>{% endfor %}</div></section>{% endif %}
+{% endblock %}

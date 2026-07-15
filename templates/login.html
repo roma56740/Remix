@@ -1,0 +1,37 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Авторизация — RAMIX MUSIC{% endblock %}
+
+{% block content %}
+<section class="auth-card auth-card-login" aria-labelledby="login-title">
+    <div class="auth-heading">
+        <h1 id="login-title">Авторизация</h1>
+        <a class="auth-logo" href="/" aria-label="RAMIX MUSIC — на главную">
+            <img src="{{ url_for('static', path='img/logo.png') }}" alt="RAMIX MUSIC">
+        </a>
+    </div>
+
+    {% if error %}
+        <div class="auth-alert" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form class="auth-form" action="/login" method="post" novalidate>
+        <label class="auth-field">
+            <span>Email</span>
+            <input type="email" name="email" value="{{ form.email }}" placeholder="Ваш email" autocomplete="email" maxlength="254" required autofocus>
+        </label>
+
+        <label class="auth-field">
+            <span>Пароль</span>
+            <input type="password" name="password" placeholder="Пароль" autocomplete="current-password" required>
+        </label>
+
+        <div class="auth-actions">
+            <a class="auth-button auth-button-outline" href="/">Назад на главную</a>
+            <button class="auth-button auth-button-primary" type="submit">Авторизоваться</button>
+        </div>
+    </form>
+
+    <p class="auth-switch">Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+</section>
+{% endblock %}

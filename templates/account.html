@@ -1,0 +1,213 @@
+{% extends "account_base.html" %}
+
+{% block title %}Личный кабинет — RAMIX MUSIC{% endblock %}
+
+{% block account_content %}
+<section class="dashboard-head">
+    <div>
+        <h1>Личный кабинет</h1>
+        <p>Здесь отображаются только реальные данные вашего аккаунта.</p>
+    </div>
+    <a class="dashboard-publish" href="/account/releases/new">
+        <svg><use href="#i-upload"></use></svg>
+        Начать публикацию
+    </a>
+</section>
+
+<div class="dashboard-layout">
+    <div class="dashboard-primary">
+        <section class="dashboard-stats" aria-label="Ключевые показатели">
+            <article class="stat-card stat-card-accent">
+                <svg><use href="#i-headphones"></use></svg>
+                <strong>{{ dashboard.stats.listens_label }}</strong>
+                <span>прослушиваний за<br>последние 30 дней</span>
+            </article>
+            <article class="stat-card">
+                <svg><use href="#i-disc"></use></svg>
+                <strong>{{ dashboard.stats.releases }}</strong>
+                <span>{{ dashboard.stats.releases_word }}<br>в каталоге</span>
+            </article>
+            <article class="stat-card">
+                <svg><use href="#i-clock"></use></svg>
+                <strong>{{ dashboard.stats.moderation }}</strong>
+                <span>{{ dashboard.stats.moderation_word }}<br>на модерации</span>
+            </article>
+            <article class="stat-card">
+                <svg><use href="#i-wallet"></use></svg>
+                <strong>{{ dashboard.stats.balance_label }}</strong>
+                <span>доступно<br>к выводу</span>
+            </article>
+        </section>
+
+        <section class="dashboard-card releases-card">
+            <div class="dashboard-card-head">
+                <h2>Последние релизы</h2>
+                {% if dashboard.releases %}<a href="/account/releases">Смотреть все</a>{% endif %}
+            </div>
+            {% if dashboard.releases %}
+            <div class="latest-releases">
+                {% for release in dashboard.releases %}
+                <article class="release-card">
+                    <a class="release-cover" href="/account/releases/{{ release.id }}/{{ 'edit' if release.is_editable else 'review' }}">
+                        {% if release.cover_url %}
+                        <img src="{{ release.cover_url }}" alt="Обложка релиза {{ release.title }}">
+                        {% else %}
+                        <span class="release-cover-empty" aria-hidden="true">{{ release.cover_initial }}</span>
+                        {% endif %}
+                    </a>
+                    <h3>{{ release.title }}</h3>
+                    <p>{{ release.artist_name }}</p>
+                    <div class="release-meta">
+                        <span class="status-badge status-{{ release.status_meta.class }}">{{ release.status_meta.label }}</span>
+                        <code>{{ 'UPC: ' ~ release.upc if release.upc else 'UPC: —' }}</code>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="dashboard-empty dashboard-empty-release">
+                <span class="dashboard-empty-icon"><svg><use href="#i-disc"></use></svg></span>
+                <div>
+                    <h3>У вас пока нет релизов</h3>
+                    <p>Создайте первый релиз — после сохранения он появится в этом блоке.</p>
+                </div>
+                <a href="/account/releases/new">Создать релиз</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-card listens-card" data-chart-root data-chart='{{ dashboard.chart_data | tojson }}'>
+            <div class="dashboard-card-head chart-heading">
+                <h2>Динамика прослушиваний</h2>
+                {% if dashboard.has_chart_data %}
+                <div class="chart-periods" role="group" aria-label="Период графика">
+                    <button type="button" data-period="7">7 дней</button>
+                    <button class="is-active" type="button" data-period="30">30 дней</button>
+                    <button type="button" data-period="365">Год</button>
+                </div>
+                {% endif %}
+            </div>
+            {% if dashboard.has_chart_data %}
+            <div class="listens-chart" data-chart-bars aria-label="График прослушиваний"></div>
+            <div class="chart-empty" data-chart-empty hidden>За выбранный период прослушиваний пока нет.</div>
+            {% else %}
+            <div class="dashboard-empty dashboard-empty-compact">
+                <span class="dashboard-empty-icon"><svg><use href="#i-chart"></use></svg></span>
+                <div>
+                    <h3>Прослушиваний пока нет</h3>
+                    <p>Статистика появится автоматически, когда в базу поступят первые данные.</p>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-card operations-card">
+            <div class="dashboard-card-head">
+                <h2>Последние операции</h2>
+            </div>
+            {% if dashboard.operations %}
+            <div class="operations-table-wrap">
+                <table class="operations-table">
+                    <thead>
+                        <tr>
+                            <th>Событие</th>
+                            <th>Релиз</th>
+                            <th>Дата</th>
+                            <th>Статус</th>
+                            <th>Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for operation in dashboard.operations %}
+                        <tr>
+                            <td data-label="Событие"><strong>{{ operation.title }}</strong></td>
+                            <td data-label="Релиз">{{ operation.release_title }}</td>
+                            <td data-label="Дата">{{ operation.date_label }}</td>
+                            <td data-label="Статус"><span class="status-badge status-{{ operation.status_meta.class }}">{{ operation.status_meta.label }}</span></td>
+                            <td data-label="Сумма">{{ operation.amount_label }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="dashboard-empty dashboard-empty-compact">
+                <span class="dashboard-empty-icon"><svg><use href="#i-list"></use></svg></span>
+                <div>
+                    <h3>Операций пока нет</h3>
+                    <p>Начисления, выплаты и изменения по релизам будут отображаться здесь.</p>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <aside class="dashboard-secondary">
+        <section class="side-card balance-card">
+            <h2>Баланс</h2>
+            <span>Доступно к выводу</span>
+            <strong>{{ dashboard.balance.available_label }}</strong>
+            <dl>
+                <div><dt>Ожидается</dt><dd>{{ dashboard.balance.pending_label }}</dd></div>
+                <div><dt>Последняя выплата</dt><dd>{{ dashboard.balance.last_payout_label }}</dd></div>
+                <div><dt>ID пользователя</dt><dd>#{{ dashboard.balance.public_id }}</dd></div>
+            </dl>
+            {% if dashboard.balance.can_withdraw %}
+            <a href="/account/balance">Вывести через Telegram</a>
+            {% elif dashboard.balance.available <= 0 %}
+            <span class="balance-unavailable">Нет средств для вывода</span>
+            {% else %}
+            <a href="/account/settings">Подключить Telegram для вывода</a>
+            {% endif %}
+        </section>
+
+        <section class="side-card quick-card">
+            <h2>Быстрые действия</h2>
+            <a href="/account/releases/new"><svg><use href="#i-upload"></use></svg>Загрузить релиз</a>
+            <a href="/account/releases"><svg><use href="#i-folder"></use></svg>Открыть мои релизы</a>
+            <a href="/account/statistics"><svg><use href="#i-chart"></use></svg>Посмотреть статистику</a>
+            <a href="/account/support"><svg><use href="#i-help"></use></svg>Написать в поддержку</a>
+        </section>
+
+        <section class="side-card news-card">
+            <h2>Новости сервиса</h2>
+            {% if dashboard.news %}
+            <div class="news-list">
+                {% for item in dashboard.news %}
+                <article class="news-item">
+                    <time datetime="{{ item.published_at }}"><strong>{{ item.day }}</strong><span>{{ item.month }}</span></time>
+                    <div><h3>{{ item.title }}</h3><p>{{ item.body }}</p></div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="side-empty">
+                <span class="dashboard-empty-icon"><svg><use href="#i-bell"></use></svg></span>
+                <h3>Новостей пока нет</h3>
+                <p>Здесь появятся публикации, добавленные администратором сервиса.</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="side-card pitching-card">
+            <div class="dashboard-card-head"><h2>Питчинг</h2>{% if dashboard.pitching_platforms %}<a href="/account/pitching">Все</a>{% endif %}</div>
+            {% if dashboard.pitching_platforms %}
+            <div class="pitching-links">
+                {% for platform in dashboard.pitching_platforms %}
+                <a href="{{ platform.support_url }}" target="_blank" rel="noopener noreferrer">
+                    <strong>{{ platform.name }}</strong>
+                    <span>Открыть кабинет площадки</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="side-empty side-empty-small">
+                <span class="dashboard-empty-icon"><svg><use href="#i-megaphone"></use></svg></span>
+                <h3>Площадки пока не добавлены</h3>
+                <p>Доступные направления питчинга появятся после добавления администратором.</p>
+            </div>
+            {% endif %}
+        </section>
+    </aside>
+</div>
+{% endblock %}

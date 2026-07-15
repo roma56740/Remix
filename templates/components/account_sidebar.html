@@ -1,0 +1,57 @@
+<aside class="account-sidebar" data-sidebar>
+    <div class="sidebar-head">
+        <a class="sidebar-logo" href="/" aria-label="RAMIX MUSIC — главная">
+            <img src="{{ url_for('static', path='img/logo.png') }}" alt="RAMIX MUSIC">
+        </a>
+        <button class="sidebar-close" type="button" data-sidebar-close aria-label="Закрыть меню">
+            <svg><use href="#i-close"></use></svg>
+        </button>
+    </div>
+
+    <a class="sidebar-create" href="/account/releases/new">
+        <svg><use href="#i-plus"></use></svg>
+        <span>Создать новый<br>релиз</span>
+    </a>
+
+    <nav class="sidebar-nav" aria-label="Навигация личного кабинета">
+        <p class="sidebar-caption">Основное</p>
+        <a class="sidebar-link {{ 'is-active' if active_section == 'home' else '' }}" href="/account">
+            <svg><use href="#i-home"></use></svg><span>Главная</span>
+        </a>
+        <a class="sidebar-link {{ 'is-active' if active_section == 'releases' else '' }}" href="/account/releases">
+            <svg><use href="#i-disc"></use></svg><span>Мои релизы</span>
+            <em>{{ dashboard.stats.releases }}</em>
+        </a>
+        <a class="sidebar-link {{ 'is-active' if active_section == 'statistics' else '' }}" href="/account/statistics">
+            <svg><use href="#i-chart"></use></svg><span>Статистика</span>
+        </a>
+        <a class="sidebar-link {{ 'is-active' if active_section == 'balance' else '' }}" href="/account/balance">
+            <svg><use href="#i-wallet"></use></svg><span>Баланс</span>
+        </a>
+        <a class="sidebar-link {{ 'is-active' if active_section == 'pitching' else '' }}" href="/account/pitching">
+            <svg><use href="#i-megaphone"></use></svg><span>Питчинг</span>
+        </a>
+        <a class="sidebar-link {{ 'is-active' if active_section == 'rules' else '' }}" href="/account/rules">
+            <svg><use href="#i-file"></use></svg><span>Правила релизов</span>
+        </a>
+
+        <p class="sidebar-caption sidebar-caption-account">Аккаунт</p>
+        <a class="sidebar-link {{ 'is-active' if active_section == 'settings' else '' }}" href="/account/settings">
+            <svg><use href="#i-settings"></use></svg><span>Настройки</span>
+        </a>
+        <a class="sidebar-link {{ 'is-active' if active_section == 'support' else '' }}" href="/account/support">
+            <svg><use href="#i-help"></use></svg><span>Поддержка</span>
+        </a>
+
+        {% if current_user and current_user.is_admin %}
+        <p class="sidebar-caption sidebar-caption-account">Администрирование</p>
+        <a class="sidebar-link" href="/admin">
+            <svg><use href="#i-admin"></use></svg><span>Открыть админ-панель</span>
+        </a>
+        {% endif %}
+    </nav>
+
+    <form class="sidebar-logout" action="/logout" method="post">
+        <button type="submit">Выйти из аккаунта</button>
+    </form>
+</aside>

@@ -1,0 +1,105 @@
+{% extends "account_base.html" %}
+
+{% block title %}Проверка релиза — RAMIX MUSIC{% endblock %}
+
+{% block account_content %}
+<section class="release-page-head">
+    <div>
+        <h1>{{ 'Проверка релиза' if release.is_editable else 'Данные релиза' }}</h1>
+        <p>{{ release.title }} · {{ release.artist_name }}</p>
+    </div>
+    <span class="status-badge status-{{ release.status_meta.class }}">{{ release.status_meta.label }}</span>
+</section>
+
+{% include "components/release_steps.html" %}
+
+{% if notice %}
+<div class="flow-notice {{ 'flow-notice-error' if release.is_editable else 'flow-notice-success' }}" role="status">{{ notice }}</div>
+{% endif %}
+{% if release.rejection_reason %}
+<div class="flow-notice flow-notice-error" role="alert"><strong>Комментарий модератора:</strong> {{ release.rejection_reason }}</div>
+{% endif %}
+
+<section class="release-panel review-panel">
+    <div class="release-panel-heading">
+        <div>
+            <h2>Проверка данных релиза</h2>
+            <p>Убедитесь, что обложка, метаданные и аудиофайлы указаны правильно.</p>
+        </div>
+    </div>
+
+    <div class="review-release-grid">
+        <div class="review-cover">
+            {% if release.cover_url %}<img src="{{ release.cover_url }}" alt="Обложка релиза {{ release.title }}">{% else %}<span>{{ release.cover_initial }}</span>{% endif %}
+        </div>
+        <dl class="review-release-details">
+            <div><dt>Название релиза</dt><dd>{{ release.title }}</dd></div>
+            <div><dt>Артист</dt><dd>{{ release.artist_name }}</dd></div>
+            <div><dt>Тип релиза</dt><dd>{{ release.release_type_label }}</dd></div>
+            <div><dt>Версия релиза</dt><dd>{{ release.release_version or 'Оригинальная версия' }}</dd></div>
+            <div><dt>Основной жанр</dt><dd>{{ release.genre or 'Не указан' }}</dd></div>
+            <div><dt>Язык метаданных</dt><dd>{{ release.metadata_language_label }}</dd></div>
+            <div><dt>Дата выхода</dt><dd>{{ release.release_date_label }}</dd></div>
+            <div><dt>Explicit</dt><dd>{{ 'Да' if release.is_explicit else 'Нет' }}</dd></div>
+        </dl>
+    </div>
+
+    {% if release.is_editable %}
+    <form id="review-submit-form" class="review-submit-form" action="/account/releases/{{ release.id }}/submit" method="post" novalidate data-submit-lock>
+        <label class="flow-field flow-field-textarea review-comment-field">
+            <span class="flow-label">Комментарий для модератора</span>
+            <textarea name="moderator_comment" maxlength="2000" placeholder="Например, укажите особенности релиза или площадки, на которые его не нужно отправлять">{{ release.moderator_comment or '' }}</textarea>
+            <small class="field-message">Необязательное поле, до 2000 символов.</small>
+        </label>
+
+        <label class="flow-check release-soon-check">
+            <input type="checkbox" name="release_soon" {{ 'checked' if release.release_soon else '' }}>
+            <span class="flow-check-box"><svg><use href="#i-check"></use></svg></span>
+            <span><strong>Сохранить выбранную дату выхода</strong><small>После принятия релиза мы подготовим отправку на площадки к указанной дате.</small></span>
+        </label>
+    </form>
+    {% else %}
+    <div class="review-readonly-note">
+        <svg><use href="#i-info"></use></svg>
+        <div>
+            <strong>Редактирование временно недоступно</strong>
+            <p>Релиз находится в статусе «{{ release.status_meta.label }}». После завершения проверки статус обновится автоматически.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="review-tracks-heading">
+        <h3>Список треков и аудиофайлов</h3>
+        <span>{{ tracks | length }} {{ 'трек' if tracks | length == 1 else 'трека' if tracks | length in [2,3,4] else 'треков' }}</span>
+    </div>
+
+    {% if tracks %}
+    <div class="track-list review-track-list">
+        {% for track in tracks %}
+        <article class="track-row">
+            <div class="track-cover-mini">{% if release.cover_url %}<img src="{{ release.cover_url }}" alt="">{% else %}<span>{{ release.cover_initial }}</span>{% endif %}</div>
+            <div class="track-main-meta"><strong>{{ '%02d' | format(track.position) }}. {{ track.title }}</strong><span>{{ track.artists }}{{ ' · ' ~ track.version if track.version else '' }}</span><small>{{ track.audio_filename }} · {{ track.audio_size_label }}</small></div>
+            <dl class="track-meta-cell"><div><dt>Отрывок</dt><dd>{{ track.tiktok_start_label }}–{{ track.tiktok_end_label }}</dd></div><div><dt>Язык</dt><dd>{{ track.language_label }}</dd></div></dl>
+            <dl class="track-meta-cell track-meta-authors"><div><dt>Автор слов</dt><dd>{{ track.lyricist }}</dd></div><div><dt>Автор музыки</dt><dd>{{ track.composer }}</dd></div></dl>
+            <div class="track-explicit"><span>18+ лексика</span><strong>{{ track.explicit_label }}</strong></div>
+            <div class="track-actions"><button class="track-icon-button" type="button" data-audio-play data-audio-url="/account/releases/{{ release.id }}/tracks/{{ track.id }}/audio" aria-label="Прослушать {{ track.title }}"><svg class="icon-play"><use href="#i-play"></use></svg><svg class="icon-pause"><use href="#i-pause"></use></svg></button></div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="release-empty-state release-empty-state-small">
+        <span><svg><use href="#i-music"></use></svg></span>
+        <div><h3>Треки не добавлены</h3><p>Вернитесь на второй этап и добавьте хотя бы один аудиофайл.</p></div>
+    </div>
+    {% endif %}
+
+    <div class="release-form-actions review-actions">
+        {% if release.is_editable %}
+        <a class="flow-button flow-button-secondary" href="/account/releases/{{ release.id }}/tracks"><svg><use href="#i-arrow-left"></use></svg> Назад</a>
+        {% if tracks %}<button class="flow-button flow-button-primary" type="submit" form="review-submit-form" data-review-submit>Отправить на модерацию <svg><use href="#i-arrow-right"></use></svg></button>{% endif %}
+        {% else %}
+        <a class="flow-button flow-button-secondary" href="/account/releases"><svg><use href="#i-arrow-left"></use></svg> К моим релизам</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

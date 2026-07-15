@@ -1,0 +1,55 @@
+{% extends "account_base.html" %}
+
+{% block title %}Правила релизов — RAMIX MUSIC{% endblock %}
+
+{% block account_content %}
+<section class="release-page-head rules-page-head">
+    <div>
+        <h1>Правила релизов</h1>
+        <p>Пошаговая проверка перед отправкой: от обложки и аудио до прав и даты выхода.</p>
+    </div>
+    <a class="dashboard-publish" href="/account/releases/new"><svg><use href="#i-plus"></use></svg>Создать релиз</a>
+</section>
+
+{% if rule_sections %}
+<nav class="rules-step-nav" aria-label="Этапы подготовки релиза">
+    {% for section in rule_sections %}
+    <a href="#rule-{{ section.step_number }}"><span>{{ '%02d'|format(section.step_number) }}</span><strong>{{ section.title }}</strong></a>
+    {% endfor %}
+</nav>
+
+<section class="rules-intro-card">
+    <div>
+        <span class="section-kicker">Главный принцип</span>
+        <h2>Все данные должны быть финальными и принадлежать вам</h2>
+        <p>Площадки получают информацию именно в том виде, в котором она указана в кабинете. Перед отправкой проверьте написание, файлы, участников и права.</p>
+    </div>
+    <span class="rules-intro-mark"><svg><use href="#i-shield"></use></svg></span>
+</section>
+
+<div class="rules-content">
+    {% for section in rule_sections %}
+    <article class="rules-section" id="rule-{{ section.step_number }}">
+        <div class="rules-section-number"><span>{{ '%02d'|format(section.step_number) }}</span><i></i></div>
+        <div class="rules-section-body">
+            <div class="rules-section-head"><h2>{{ section.title }}</h2><p>{{ section.intro }}</p></div>
+            <ul>
+                {% for item in section["items"] %}<li><svg><use href="#i-check"></use></svg><span>{{ item }}</span></li>{% endfor %}
+            </ul>
+            {% if section.note %}<div class="rules-note"><svg><use href="#i-info"></use></svg><p>{{ section.note }}</p></div>{% endif %}
+        </div>
+    </article>
+    {% endfor %}
+</div>
+
+<section class="rules-final-card">
+    <div><span class="section-kicker">Готовы к публикации?</span><h2>Проверьте релиз ещё один раз</h2><p>Если все пункты выполнены, создайте релиз и последовательно заполните три этапа формы.</p></div>
+    <div class="rules-final-actions"><a class="flow-button flow-button-secondary" href="/account/support">Задать вопрос</a><a class="flow-button flow-button-primary" href="/account/releases/new">Создать релиз <svg><use href="#i-arrow-right"></use></svg></a></div>
+</section>
+{% else %}
+<div class="dashboard-empty">
+    <span class="dashboard-empty-icon"><svg><use href="#i-file"></use></svg></span>
+    <div><h3>Правила пока не опубликованы</h3><p>Раздел появится после добавления информации администратором.</p></div>
+</div>
+{% endif %}
+{% endblock %}

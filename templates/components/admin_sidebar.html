@@ -1,0 +1,16 @@
+<aside class="admin-sidebar" data-admin-sidebar>
+    <div class="admin-sidebar-head"><a href="/" class="admin-logo"><img src="{{ url_for('static', path='img/logo.png') }}" alt="RAMIX MUSIC"></a><button type="button" data-admin-sidebar-close><svg><use href="#a-close"></use></svg></button></div>
+    <p class="admin-nav-caption">Работа</p>
+    <nav class="admin-nav" aria-label="Навигация администратора">
+        <a class="{{ 'is-active' if active_admin == 'overview' else '' }}" href="/admin"><svg><use href="#a-home"></use></svg><span>Обзор</span></a>
+        <a class="{{ 'is-active' if active_admin == 'releases' else '' }}" href="/admin/releases"><svg><use href="#a-search"></use></svg><span>Поиск релизов</span></a>
+        <a class="{{ 'is-active' if active_admin == 'moderation' else '' }}" href="/admin/moderation"><svg><use href="#a-list"></use></svg><span>Модерация</span>{% if admin_counts.moderation %}<em>{{ admin_counts.moderation }}</em>{% endif %}</a>
+        <a class="{{ 'is-active' if active_admin == 'users' else '' }}" href="/admin/users"><svg><use href="#a-users"></use></svg><span>Пользователи</span></a>
+        <a class="{{ 'is-active' if active_admin == 'imports' else '' }}" href="/admin/imports"><svg><use href="#a-file"></use></svg><span>Баланс XLSX</span></a>
+        <a class="{{ 'is-active' if active_admin == 'news' else '' }}" href="/admin/news"><svg><use href="#a-news"></use></svg><span>Новости сервиса</span></a>
+        <a class="{{ 'is-active' if active_admin == 'payouts' else '' }}" href="/admin/payouts"><svg><use href="#a-wallet"></use></svg><span>Выплаты</span>{% if admin_counts.payouts %}<em>{{ admin_counts.payouts }}</em>{% endif %}</a>
+        <a class="{{ 'is-active' if active_admin == 'support' else '' }}" href="/admin/support"><svg><use href="#a-message"></use></svg><span>Поддержка</span>{% if admin_counts.support %}<em>{{ admin_counts.support }}</em>{% endif %}</a>
+        <a class="{{ 'is-active' if active_admin == 'pitching' else '' }}" href="/admin/pitching"><svg><use href="#a-megaphone"></use></svg><span>Питчинг</span>{% if admin_counts.pitching %}<em>{{ admin_counts.pitching }}</em>{% endif %}</a>
+    </nav>
+    <div class="admin-sidebar-footer"><a href="/account"><svg><use href="#a-arrow-left"></use></svg>Личный кабинет</a><form action="/logout" method="post"><button type="submit">Выйти из аккаунта</button></form></div>
+</aside>

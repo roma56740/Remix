@@ -1,0 +1,52 @@
+{% extends "account_base.html" %}
+{% block title %}Баланс — RAMIX MUSIC{% endblock %}
+{% block account_content %}
+<section class="release-page-head balance-page-head">
+    <div><h1>Баланс</h1><p>Начисления, выплаты и история операций без демонстрационных данных.</p></div>
+    <a class="flow-button flow-button-secondary" href="#payout">Запросить выплату</a>
+</section>
+{% if notice %}<div class="flow-notice flow-notice-success">{{ notice }}</div>{% endif %}
+{% if error %}<div class="flow-notice flow-notice-error">{{ error }}</div>{% endif %}
+
+<section class="balance-summary-grid">
+    <article class="balance-hero-card"><span>Доступно к выводу</span><strong>{{ balance_data.available_label }}</strong><p>Средства, которые можно отправить на выплату.</p></article>
+    <article><svg><use href="#i-clock"></use></svg><span>Ожидает выплаты</span><strong>{{ balance_data.pending_label }}</strong></article>
+    <article><svg><use href="#i-wallet"></use></svg><span>Начислено за месяц</span><strong>{{ balance_data.income_month_label }}</strong></article>
+    <article><svg><use href="#i-calendar"></use></svg><span>Последняя выплата</span><strong>{{ balance_data.last_payout_label }}</strong></article>
+</section>
+
+<div class="balance-layout">
+    <section class="dashboard-panel balance-operations-panel">
+        <div class="dashboard-panel-head">
+            <div><span class="section-kicker">История</span><h2>Операции</h2></div>
+            <form method="get"><select name="status" onchange="this.form.submit()"><option value="all">Все статусы</option><option value="completed" {{ 'selected' if balance_data.status_filter == 'completed' else '' }}>Завершённые</option><option value="processing" {{ 'selected' if balance_data.status_filter == 'processing' else '' }}>В обработке</option><option value="cancelled" {{ 'selected' if balance_data.status_filter == 'cancelled' else '' }}>Отменённые</option></select></form>
+        </div>
+        {% if balance_data.operations %}
+        <div class="balance-operation-list">
+            {% for item in balance_data.operations %}
+            <article><span class="balance-operation-icon"><svg><use href="{{ '#i-arrow-right' if item.amount and item.amount < 0 else '#i-plus' }}"></use></svg></span><div><strong>{{ item.title }}</strong><small>{{ item.release_title or 'Без привязки к релизу' }} · {{ item.created_at_label }}</small></div><span class="status-badge status-{{ item.status_meta.class }}">{{ item.status_meta.label }}</span><em class="{{ 'is-negative' if item.amount and item.amount < 0 else '' }}">{{ item.amount_label }}</em></article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="dashboard-empty"><span class="dashboard-empty-icon"><svg><use href="#i-wallet"></use></svg></span><div><h3>Операций пока нет</h3><p>Начисления и выплаты появятся здесь после загрузки аналитики.</p></div></div>
+        {% endif %}
+    </section>
+
+    <aside class="dashboard-panel payout-panel" id="payout">
+        <span class="section-kicker">Вывод средств</span><h2>Создать заявку</h2>
+        {% if balance_data.active_payout %}
+        <div class="payout-active"><span class="status-badge status-{{ balance_data.active_payout.status_meta.class }}">{{ balance_data.active_payout.status_meta.label }}</span><strong>{{ balance_data.active_payout.amount_label }}</strong><p>Заявка от {{ balance_data.active_payout.created_at_label }} уже обрабатывается. Новую можно создать после завершения текущей.</p></div>
+        {% else %}
+        <form class="payout-form" action="/account/balance/payout" method="post" data-submit-lock>
+            <label class="flow-field"><span class="flow-label">Сумма, ₽</span><input type="number" name="amount" min="1000" max="{{ balance_data.available }}" step="1" placeholder="Например, 5000" required><small class="field-message">Минимум {{ balance_data.minimum_payout }} ₽. Доступно: {{ balance_data.available_label }}.</small></label>
+            <label class="flow-field"><span class="flow-label">Способ выплаты</span><select name="method" required><option value="telegram">Через Telegram</option><option value="bank">Банковские реквизиты</option><option value="other">Другой способ</option></select><small class="field-message">Администратор увидит выбранный способ в заявке.</small></label>
+            <label class="flow-field flow-field-textarea"><span class="flow-label">Контакт или реквизиты</span><textarea name="details" maxlength="800" placeholder="Telegram username или данные для связи" required></textarea><small class="field-message">Не указывайте пароли, коды подтверждения и данные банковской карты полностью.</small></label>
+            <button class="flow-button flow-button-primary" type="submit" {{ 'disabled' if not balance_data.can_request else '' }}>Создать заявку</button>
+        </form>
+        {% endif %}
+        {% if balance_data.payouts %}
+        <div class="payout-history"><h3>Последние заявки</h3>{% for item in balance_data.payouts[:5] %}<article><div><strong>{{ item.amount_label }}</strong><small>{{ item.created_at_label }}</small></div><span class="status-badge status-{{ item.status_meta.class }}">{{ item.status_meta.label }}</span></article>{% endfor %}</div>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}

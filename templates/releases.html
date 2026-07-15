@@ -1,0 +1,78 @@
+{% extends "account_base.html" %}
+
+{% block title %}Мои релизы — RAMIX MUSIC{% endblock %}
+
+{% block account_content %}
+<section class="release-page-head releases-list-head">
+    <div>
+        <h1>Мои релизы</h1>
+        <p>Здесь отображаются только релизы, которые вы создали в своём аккаунте.</p>
+    </div>
+    <a class="dashboard-publish" href="/account/releases/new"><svg><use href="#i-upload"></use></svg> Начать публикацию</a>
+</section>
+
+{% if notice %}<div class="flow-notice flow-notice-success" role="status"><svg><use href="#i-check"></use></svg>{{ notice }}</div>{% endif %}
+
+<section class="release-count-grid" aria-label="Статусы релизов">
+    <a class="release-count-card {{ 'is-active' if releases_data.status_filter == 'all' else '' }}" href="/account/releases"><strong>{{ releases_data.counts.all }}</strong><span>Все релизы</span></a>
+    <a class="release-count-card" href="/account/releases?status=published_all"><strong>{{ releases_data.counts.published }}</strong><span>Опубликованные</span></a>
+    <a class="release-count-card" href="/account/releases?status=moderation"><strong>{{ releases_data.counts.moderation }}</strong><span>На модерации</span></a>
+    <a class="release-count-card" href="/account/releases?status=rejected"><strong>{{ releases_data.counts.rejected }}</strong><span>Отклонённые</span></a>
+    <a class="release-count-card" href="/account/releases?status=draft"><strong>{{ releases_data.counts.draft }}</strong><span>Черновики</span></a>
+</section>
+
+<section class="release-panel releases-catalog-panel">
+    <form class="release-filters" action="/account/releases" method="get">
+        <label class="release-search"><svg><use href="#i-search"></use></svg><input type="search" name="q" value="{{ releases_data.query }}" placeholder="Поиск по названию, артисту или UPC"></label>
+        <select name="status" aria-label="Статус релиза">
+            <option value="all" {{ 'selected' if releases_data.status_filter == 'all' else '' }}>Все статусы</option>
+            <option value="published_all" {{ 'selected' if releases_data.status_filter == 'published_all' else '' }}>Опубликованные</option>
+            <option value="moderation" {{ 'selected' if releases_data.status_filter == 'moderation' else '' }}>На модерации</option>
+            <option value="rejected" {{ 'selected' if releases_data.status_filter == 'rejected' else '' }}>Отклонённые</option>
+            <option value="draft" {{ 'selected' if releases_data.status_filter == 'draft' else '' }}>Черновики</option>
+        </select>
+        <button class="flow-button flow-button-outline" type="submit"><svg><use href="#i-filter"></use></svg> Применить</button>
+    </form>
+
+    <div class="release-filter-chips">
+        <a class="{{ 'is-active' if releases_data.status_filter == 'all' else '' }}" href="/account/releases">Все <strong>{{ releases_data.counts.all }}</strong></a>
+        <a class="{{ 'is-active' if releases_data.status_filter == 'published_all' else '' }}" href="/account/releases?status=published_all">Опубликованные <strong>{{ releases_data.counts.published }}</strong></a>
+        <a class="{{ 'is-active' if releases_data.status_filter == 'moderation' else '' }}" href="/account/releases?status=moderation">На модерации <strong>{{ releases_data.counts.moderation }}</strong></a>
+        <a class="{{ 'is-active' if releases_data.status_filter == 'rejected' else '' }}" href="/account/releases?status=rejected">Отклонённые <strong>{{ releases_data.counts.rejected }}</strong></a>
+        <a class="{{ 'is-active' if releases_data.status_filter == 'draft' else '' }}" href="/account/releases?status=draft">Черновики <strong>{{ releases_data.counts.draft }}</strong></a>
+    </div>
+
+    {% if releases_data["items"] %}
+    <div class="releases-catalog-list">
+        {% for release in releases_data["items"] %}
+        <article class="release-catalog-row">
+            <a class="catalog-cover" href="/account/releases/{{ release.id }}/{{ 'edit' if release.is_editable else 'review' }}">
+                {% if release.cover_url %}<img src="{{ release.cover_url }}" alt="Обложка {{ release.title }}">{% else %}<span>{{ release.cover_initial }}</span>{% endif %}
+            </a>
+            <div class="catalog-title"><strong>{{ release.title }}</strong><span>{{ release.artist_name }}</span><small>{{ release.track_count }} {{ 'трек' if release.track_count == 1 else 'трека' if release.track_count in [2,3,4] else 'треков' }} · {{ release.release_type_label }}</small></div>
+            <dl class="catalog-meta"><div><dt>Дата релиза</dt><dd>{{ release.release_date_label }}</dd></div><div><dt>UPC</dt><dd>{{ release.upc or 'Ещё не назначен' }}</dd></div></dl>
+            <dl class="catalog-meta"><div><dt>Жанр</dt><dd>{{ release.genre or 'Не указан' }}</dd></div><div><dt>Обновлён</dt><dd>{{ release.updated_at_label }}</dd></div></dl>
+            <span class="status-badge status-{{ release.status_meta.class }}">{{ release.status_meta.label }}</span>
+            <div class="catalog-actions">
+                <a class="track-icon-button" href="/account/releases/{{ release.id }}/{{ 'edit' if release.is_editable else 'review' }}" aria-label="Открыть {{ release.title }}"><svg><use href="{{ '#i-edit' if release.is_editable else '#i-eye' }}"></use></svg></a>
+                {% if release.is_editable %}
+                <form action="/account/releases/{{ release.id }}/delete" method="post" data-confirm="Удалить релиз «{{ release.title }}» и все его треки?">
+                    <button class="track-icon-button track-icon-danger" type="submit" aria-label="Удалить {{ release.title }}"><svg><use href="#i-trash"></use></svg></button>
+                </form>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="release-empty-state catalog-empty">
+        <span><svg><use href="#i-disc"></use></svg></span>
+        <div>
+            <h3>{{ 'По вашему запросу ничего не найдено' if releases_data.query or releases_data.status_filter != 'all' else 'У вас пока нет релизов' }}</h3>
+            <p>{{ 'Измените поиск или выберите другой статус.' if releases_data.query or releases_data.status_filter != 'all' else 'Создайте первый релиз, загрузите треки и отправьте его на модерацию.' }}</p>
+        </div>
+        {% if not releases_data.query and releases_data.status_filter == 'all' %}<a class="flow-button flow-button-primary" href="/account/releases/new">Создать релиз</a>{% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

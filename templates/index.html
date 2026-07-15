@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}RAMIX MUSIC — музыкальная дистрибуция{% endblock %}
+
+{% block content %}
+<section class="hero" id="top">
+    <div class="container hero-inner">
+        <div class="hero-copy">
+            <h1>
+                <span>Музыка — крик души.</span>
+                <strong>Так пусть этот крик<br>услышат все</strong>
+            </h1>
+            <a class="button button-hero" href="#support">Разместить трек <span aria-hidden="true">⟶</span></a>
+        </div>
+
+        <div class="hero-disk" aria-hidden="true">
+            <img src="{{ url_for('static', path='img/disk-main.png') }}" alt="">
+        </div>
+
+        <div class="hero-cards" data-slider="hero">
+            <article class="stat-card is-active">
+                <div class="stat-card-top">
+                    <strong>150+</strong>
+                    <img src="{{ url_for('static', path='img/world-icon.png') }}" alt="">
+                </div>
+                <h2>Мировой охват</h2>
+                <p>Мгновенная автоматизированная доставка релизов на все ключевые международные и локальные музыкальные витрины.</p>
+            </article>
+            <article class="stat-card">
+                <div class="stat-card-top">
+                    <strong>85%</strong>
+                    <img src="{{ url_for('static', path='img/royalties-icon.png') }}" alt="">
+                </div>
+                <h2>Честные роялти</h2>
+                <p>Львиная доля чистого дохода от стриминга, скачиваний и официальных продаж отправляется напрямую на баланс артиста.</p>
+            </article>
+            <article class="stat-card">
+                <div class="stat-card-top">
+                    <strong>100%</strong>
+                    <img src="{{ url_for('static', path='img/rights-icon.png') }}" alt="">
+                </div>
+                <h2>Ваши права</h2>
+                <p>Мы выступаем исключительно как технический дистрибьютор. Все авторские и смежные права навсегда остаются за вами.</p>
+            </article>
+        </div>
+        <div class="slider-dots hero-dots" data-dots="hero" aria-label="Слайды преимуществ"></div>
+    </div>
+</section>
+
+<section class="platform-marquee" id="platforms" aria-label="Музыкальные платформы">
+    <div class="marquee-track">
+        {% for _ in range(2) %}
+        <div class="marquee-group" {% if loop.index == 2 %}aria-hidden="true"{% endif %}>
+            <img src="{{ url_for('static', path='img/yandex-music.png') }}" alt="Яндекс Музыка">
+            <img src="{{ url_for('static', path='img/mts-music.png') }}" alt="МТС Музыка">
+            <img src="{{ url_for('static', path='img/apple-music.png') }}" alt="Apple Music">
+            <img src="{{ url_for('static', path='img/vk-music.png') }}" alt="VK Музыка">
+            <img src="{{ url_for('static', path='img/deezer.png') }}" alt="Deezer">
+            <img src="{{ url_for('static', path='img/tiktok.png') }}" alt="TikTok">
+            <img src="{{ url_for('static', path='img/zvuk.png') }}" alt="Звук">
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="services section" id="services">
+    <div class="container">
+        <h2 class="section-title">Возможности дистрибуции</h2>
+        <div class="services-layout">
+            <div class="service-cards" data-slider="services">
+                <article class="service-card is-active">
+                    <h3>Дистрибуция на мировые площадки</h3>
+                    <p>Публикация музыки на ведущих стриминговых сервисах и цифровых платформах по всему миру в пару кликов.</p>
+                </article>
+                <article class="service-card">
+                    <h3>Продвижение и поддержка</h3>
+                    <p>Дополнительные возможности продвижения вашей музыки через эффективные смарт-инструменты наших партнеров.</p>
+                </article>
+                <article class="service-card">
+                    <h3>Удобная панель управления</h3>
+                    <p>Интуитивный личный кабинет для быстрой загрузки релизов, контроля детальной статистики и гибкого управления выплатами.</p>
+                </article>
+                <article class="service-card">
+                    <h3>Прозрачная статистика</h3>
+                    <p>Подробная, наглядная и честная аналитика по прослушиваниям, географии аудитории, доходам и общей эффективности витрины.</p>
+                </article>
+            </div>
+            <div class="services-controls" aria-label="Переключение преимуществ">
+                <button type="button" data-slider-prev="services" aria-label="Предыдущий слайд">←</button>
+                <button type="button" data-slider-next="services" aria-label="Следующий слайд">→</button>
+            </div>
+            <div class="slider-dots services-dots" data-dots="services"></div>
+            <a class="service-cta" href="#support">
+                <span>Оценить возможности кабинета</span>
+                <strong aria-hidden="true">→</strong>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="releases section" id="releases">
+    <div class="container releases-box">
+        <h2 class="section-title">Наши релизы<br>говорят за нас</h2>
+        <p>Посмотрите, как выглядят и звучат треки, которые уже прошли через нашу дистрибуцию. Оцените масштабы каталога RAMIX MUSIC на одной из главных стриминговых площадок.</p>
+        <div class="releases-actions">
+            <a class="button button-outline" href="#">Каталог в Яндекс Музыке</a>
+            <a class="button button-primary" href="#support">Разместить трек <span aria-hidden="true">→</span></a>
+        </div>
+    </div>
+</section>
+
+<section class="faq section" id="faq">
+    <div class="container faq-layout">
+        <div class="faq-intro">
+            <div class="faq-heading-row">
+                <h2 class="section-title">Вопросы и<br>ответы</h2>
+                <img src="{{ url_for('static', path='img/faq-badge.png') }}" alt="FAQ">
+            </div>
+            <p>Собрали здесь всю ключевую информацию о модерации, роялти, правах и возможностях бесплатного размещения.</p>
+        </div>
+
+        <div class="faq-list">
+            <article class="faq-item is-open">
+                <button type="button" aria-expanded="true">
+                    <span>1. Это точно бесплатно?</span><b>×</b>
+                </button>
+                <div class="faq-answer"><p>Да, дистрибуция музыки на платформе полностью бесплатна. Вы можете свободно загружать и выпускать релизы без какой-либо оплаты за публикацию.</p></div>
+            </article>
+            <article class="faq-item">
+                <button type="button" aria-expanded="false">
+                    <span>2. Какой процент получает артист?</span><b>+</b>
+                </button>
+                <div class="faq-answer"><p>Артист получает 85% чистого дохода от стриминга, скачиваний и официальных продаж. Расчеты доступны в личном кабинете.</p></div>
+            </article>
+            <article class="faq-item">
+                <button type="button" aria-expanded="false">
+                    <span>3. Как быстро происходит модерация и за сколько дней нужно загружать релизы?</span><b>+</b>
+                </button>
+                <div class="faq-answer"><p>Рекомендуем загружать релиз заранее. Срок модерации зависит от состава релиза и требований выбранных площадок.</p></div>
+            </article>
+            <article class="faq-item">
+                <button type="button" aria-expanded="false">
+                    <span>4. На какие площадки загружается музыка?</span><b>+</b>
+                </button>
+                <div class="faq-answer"><p>Релизы отправляются на ключевые международные и локальные музыкальные сервисы, представленные в каталоге платформы.</p></div>
+            </article>
+            <article class="faq-item">
+                <button type="button" aria-expanded="false">
+                    <span>5. Кто владеет правами на музыку?</span><b>+</b>
+                </button>
+                <div class="faq-answer"><p>Все авторские и смежные права остаются у правообладателя. RAMIX MUSIC работает как технический дистрибьютор.</p></div>
+            </article>
+            <article class="faq-item">
+                <button type="button" aria-expanded="false">
+                    <span>6. Есть ли поддержка и продвижение?</span><b>+</b>
+                </button>
+                <div class="faq-answer"><p>Да. Артистам доступны техническая поддержка и дополнительные инструменты продвижения через партнерские решения.</p></div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="contact section" id="support">
+    <div class="container contact-layout">
+        <div class="contact-copy">
+            <h2 class="section-title">Начните дистрибуцию<br>прямо сейчас</h2>
+            <a class="button button-primary contact-main-button" href="#">Разместить трек <span aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="contact-cards">
+            <a class="contact-card is-accent" href="https://t.me/ramixmusicsupportbot" target="_blank" rel="noreferrer">
+                <span class="contact-label">Техническая поддержка артистов</span>
+                <span class="contact-type">Телеграм-бот</span>
+                <strong>@RAMIXMUSICSUPPORTBOT</strong>
+                <span class="contact-icon" aria-hidden="true">➤</span>
+            </a>
+            <a class="contact-card" href="mailto:support@ramixmusic.ru">
+                <span class="contact-label">По деловым и общим вопросам</span>
+                <span class="contact-type">Электронная почта</span>
+                <strong>SUPPORT@RAMIXMUSIC.RU</strong>
+                <span class="contact-icon" aria-hidden="true">✉</span>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+<nav class="release-steps" aria-label="Этапы создания релиза">
+    {% set release_id = release.id if release else none %}
+    {% if release_id %}<a{% else %}<span{% endif %} class="release-step {{ 'is-active' if step == 1 else '' }} {{ 'is-complete' if step > 1 else '' }}" {% if release_id %}href="/account/releases/{{ release_id }}/edit"{% endif %}>
+        <strong>01</strong>
+        <span>Основная<br>информация</span>
+    {% if release_id %}</a>{% else %}</span>{% endif %}
+
+    {% if release_id %}<a{% else %}<span{% endif %} class="release-step {{ 'is-active' if step == 2 else '' }} {{ 'is-complete' if step > 2 else '' }}" {% if release_id %}href="/account/releases/{{ release_id }}/tracks"{% endif %}>
+        <strong>02</strong>
+        <span>Треки и аудиофайлы<br>релиза</span>
+    {% if release_id %}</a>{% else %}</span>{% endif %}
+
+    {% if release_id %}<a{% else %}<span{% endif %} class="release-step {{ 'is-active' if step == 3 else '' }}" {% if release_id %}href="/account/releases/{{ release_id }}/review"{% endif %}>
+        <strong>03</strong>
+        <span>Проверка<br>информации</span>
+    {% if release_id %}</a>{% else %}</span>{% endif %}
+</nav>

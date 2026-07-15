@@ -1,0 +1,148 @@
+{% extends "account_base.html" %}
+
+{% block title %}Настройки — RAMIX MUSIC{% endblock %}
+
+{% block account_content %}
+<section class="settings-head">
+    <div>
+        <h1>Настройки</h1>
+        <p>Управляйте личными данными и безопасностью аккаунта.</p>
+    </div>
+</section>
+
+{% if notice %}
+<div class="settings-notice settings-notice-success" role="status">
+    <svg><use href="#i-check"></use></svg>
+    <span>{{ notice }}</span>
+</div>
+{% endif %}
+
+<section class="settings-card">
+    <div class="settings-card-heading">
+        <div>
+            <h2>Личные данные</h2>
+            <p>Эти данные используются в вашем профиле и для входа в аккаунт.</p>
+        </div>
+        <span class="settings-card-icon"><svg><use href="#i-user"></use></svg></span>
+    </div>
+
+    {% if profile_error %}
+    <div class="settings-notice settings-notice-error" role="alert">{{ profile_error }}</div>
+    {% endif %}
+
+    <form class="settings-form" action="/account/settings/profile" method="post" novalidate>
+        <div class="settings-grid">
+            <label class="settings-field">
+                <span>Имя</span>
+                <span class="settings-input-wrap">
+                    <input type="text" name="name" value="{{ profile_form.name }}" minlength="2" maxlength="80" autocomplete="name" required>
+                    <svg><use href="#i-user"></use></svg>
+                </span>
+            </label>
+            <label class="settings-field">
+                <span>Электронная почта</span>
+                <span class="settings-input-wrap">
+                    <input type="email" name="email" value="{{ profile_form.email }}" maxlength="254" autocomplete="email" required>
+                    <svg><use href="#i-mail"></use></svg>
+                </span>
+            </label>
+            <label class="settings-field">
+                <span>Логин пользователя</span>
+                <span class="settings-input-wrap">
+                    <input type="text" name="username" value="{{ profile_form.username }}" minlength="3" maxlength="32" pattern="[a-z0-9_]+" autocomplete="username" required>
+                    <svg><use href="#i-info"></use></svg>
+                </span>
+                <small>Только латинские буквы, цифры и нижнее подчёркивание.</small>
+            </label>
+        </div>
+        <div class="settings-actions">
+            <button type="submit">Сохранить изменения</button>
+        </div>
+    </form>
+</section>
+
+<section class="settings-card settings-security-card">
+    <div class="settings-card-heading">
+        <div>
+            <h2>Безопасность</h2>
+            <p>Для смены пароля подтвердите текущий пароль.</p>
+        </div>
+        <span class="settings-card-icon"><svg><use href="#i-key"></use></svg></span>
+    </div>
+
+    {% if password_error %}
+    <div class="settings-notice settings-notice-error" role="alert">{{ password_error }}</div>
+    {% endif %}
+
+    <form class="settings-form" action="/account/settings/password" method="post" novalidate>
+        <div class="settings-password-grid">
+            <label class="settings-field settings-field-wide">
+                <span>Текущий пароль</span>
+                <span class="settings-input-wrap">
+                    <input type="password" name="current_password" placeholder="Введите текущий пароль" autocomplete="current-password" required>
+                    <svg><use href="#i-key"></use></svg>
+                </span>
+            </label>
+            <label class="settings-field">
+                <span>Новый пароль</span>
+                <span class="settings-input-wrap">
+                    <input type="password" name="new_password" placeholder="Минимум 8 символов" minlength="8" autocomplete="new-password" required>
+                </span>
+            </label>
+            <label class="settings-field">
+                <span>Повторите новый пароль</span>
+                <span class="settings-input-wrap">
+                    <input type="password" name="new_password_confirm" placeholder="Повторите новый пароль" minlength="8" autocomplete="new-password" required>
+                </span>
+            </label>
+        </div>
+        <div class="settings-actions">
+            <button type="submit">Сменить пароль</button>
+        </div>
+    </form>
+</section>
+
+<section class="settings-card telegram-status-card">
+    <div class="settings-card-heading settings-card-heading-inline">
+        <div>
+            <h2>Привязка к Telegram</h2>
+            <p>Получайте уведомления о релизах, питчинге, поддержке, балансе и выплатах прямо в боте.</p>
+        </div>
+        {% if dashboard.balance.telegram_connected %}
+        <span class="connection-status is-connected">Подключён</span>
+        {% else %}
+        <span class="connection-status">Не подключён</span>
+        {% endif %}
+    </div>
+    {% if dashboard.balance.telegram_connected %}
+    <div class="telegram-connect-box is-connected">
+        <div class="telegram-connect-icon">✓</div>
+        <div>
+            <strong>Telegram подключён</strong>
+            <p>Уведомления включены. Выплату можно запрашивать на сайте или через меню бота.</p>
+        </div>
+        <div class="telegram-connect-actions">
+            {% if telegram_bot_url %}<a href="{{ telegram_bot_url }}" target="_blank" rel="noopener">Открыть бота</a>{% endif %}
+            <form action="/account/settings/telegram/disconnect" method="post" data-confirm="Отключить Telegram от аккаунта?">
+                <button type="submit" class="is-danger">Отключить</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="telegram-connect-box">
+        <div class="telegram-connect-icon">1</div>
+        <div>
+            <strong>Откройте Telegram-бота</strong>
+            <p>Нажмите «Подключить аккаунт», затем введите логин или email и пароль от RAMIX MUSIC. Пароль используется только для проверки и не сохраняется.</p>
+        </div>
+        <div class="telegram-connect-actions">
+            {% if telegram_bot_url %}
+            <a class="is-primary" href="{{ telegram_bot_url }}" target="_blank" rel="noopener">Подключить Telegram</a>
+            {% else %}
+            <span class="telegram-bot-unavailable">Администратор ещё не указал BOT_TOKEN и BOT_USERNAME.</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

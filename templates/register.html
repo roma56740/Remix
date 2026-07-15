@@ -1,0 +1,53 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Регистрация — RAMIX MUSIC{% endblock %}
+
+{% block content %}
+<section class="auth-card auth-card-register" aria-labelledby="register-title">
+    <div class="auth-heading">
+        <h1 id="register-title">Регистрация</h1>
+        <a class="auth-logo" href="/" aria-label="RAMIX MUSIC — на главную">
+            <img src="{{ url_for('static', path='img/logo.png') }}" alt="RAMIX MUSIC">
+        </a>
+    </div>
+
+    {% if error %}
+        <div class="auth-alert" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form class="auth-form" action="/register" method="post" novalidate>
+        <label class="auth-field">
+            <span>Имя</span>
+            <input type="text" name="name" value="{{ form.name }}" placeholder="Введите ваше имя" autocomplete="name" maxlength="80" required autofocus>
+        </label>
+
+        <label class="auth-field">
+            <span>Email</span>
+            <input type="email" name="email" value="{{ form.email }}" placeholder="Ваш email" autocomplete="email" maxlength="254" required>
+        </label>
+
+        <label class="auth-field">
+            <span>Пароль</span>
+            <input type="password" name="password" placeholder="Придумайте пароль" autocomplete="new-password" minlength="8" required>
+        </label>
+
+        <label class="auth-field">
+            <span>Подтвердите пароль</span>
+            <input type="password" name="password_confirm" placeholder="Повторите пароль" autocomplete="new-password" minlength="8" required>
+        </label>
+
+        <label class="auth-policy">
+            <input type="checkbox" name="accept_policy" required>
+            <span class="auth-checkbox" aria-hidden="true"></span>
+            <span>Я принимаю условия <a href="/privacy" target="_blank">политики конфиденциальности</a> сервиса “RamixMusic”</span>
+        </label>
+
+        <div class="auth-actions">
+            <a class="auth-button auth-button-outline" href="/">Назад на главную</a>
+            <button class="auth-button auth-button-primary" type="submit">Зарегистрироваться</button>
+        </div>
+    </form>
+
+    <p class="auth-switch">Уже есть аккаунт? <a href="/login">Авторизоваться</a></p>
+</section>
+{% endblock %}

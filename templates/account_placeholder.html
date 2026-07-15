@@ -1,0 +1,15 @@
+{% extends "account_base.html" %}
+
+{% block title %}{{ section_title }} — RAMIX MUSIC{% endblock %}
+
+{% block account_content %}
+<section class="dashboard-head">
+    <h1>{{ section_title }}</h1>
+</section>
+<section class="dashboard-card placeholder-card">
+    <span class="placeholder-icon"><svg><use href="#i-disc"></use></svg></span>
+    <h2>Раздел подготовлен к следующему этапу</h2>
+    <p>Навигация уже работает. Содержимое этой страницы добавим отдельно по вашему дизайну, не затрагивая готовую главную страницу кабинета.</p>
+    <a href="/account">Вернуться в личный кабинет</a>
+</section>
+{% endblock %}

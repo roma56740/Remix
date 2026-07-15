@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#050505">
+    <title>{% block title %}Админ-панель — RAMIX MUSIC{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/admin.css') }}">
+</head>
+<body class="admin-page">
+<svg class="admin-sprite" aria-hidden="true">
+    <symbol id="a-arrow-left" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6M9 12h11"/></symbol>
+    <symbol id="a-arrow-right" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6M4 12h11"/></symbol>
+    <symbol id="a-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="a-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="a-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10M9 20v-6h6v6"/></symbol>
+    <symbol id="a-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></symbol>
+    <symbol id="a-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/></symbol>
+    <symbol id="a-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0112 0M16 6a3 3 0 010 6M18 20a5 5 0 00-3-4.6"/></symbol>
+    <symbol id="a-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/></symbol>
+    <symbol id="a-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-5"/></symbol>
+    <symbol id="a-wallet" viewBox="0 0 24 24"><path d="M4 6h15a2 2 0 012 2v10H5a2 2 0 01-2-2V7a3 3 0 013-3h11v2M16 12h5"/></symbol>
+    <symbol id="a-news" viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></symbol>
+    <symbol id="a-message" viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4zM8 9h8M8 13h5"/></symbol>
+    <symbol id="a-megaphone" viewBox="0 0 24 24"><path d="M4 13h3l10 5V6L7 11H4zM7 13l2 7h3l-2-6"/></symbol>
+    <symbol id="a-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></symbol>
+    <symbol id="a-upload" viewBox="0 0 24 24"><path d="M12 16V4M8 8l4-4 4 4M5 14v5h14v-5"/></symbol>
+    <symbol id="a-download" viewBox="0 0 24 24"><path d="M12 4v12M8 12l4 4 4-4M5 20h14"/></symbol>
+    <symbol id="a-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="a-check" viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></symbol>
+    <symbol id="a-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="a-edit" viewBox="0 0 24 24"><path d="M4 20l4.5-1 10-10a2 2 0 00-3-3l-10 10zM14 7l3 3"/></symbol>
+    <symbol id="a-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></symbol>
+    <symbol id="a-chart" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-7"/></symbol>
+    <symbol id="a-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="a-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+</svg>
+<div class="admin-layout">
+    {% include "components/admin_sidebar.html" %}
+    <button class="admin-overlay" type="button" data-admin-sidebar-close aria-label="Закрыть меню"></button>
+    <div class="admin-workspace">
+        <header class="admin-topbar">
+            <button class="admin-menu-button" type="button" data-admin-sidebar-open aria-label="Открыть меню"><svg><use href="#a-menu"></use></svg></button>
+            <a class="admin-back" href="/"><svg><use href="#a-arrow-left"></use></svg><span>На главную страницу</span></a>
+            <div class="admin-top-actions">
+                <a class="admin-top-icon" href="/account/notifications" aria-label="Уведомления"><svg><use href="#a-bell"></use></svg></a>
+                <a class="admin-account-link" href="/account"><span>{{ current_user.name[:2] | upper }}</span><strong>{{ current_user.username or 'Admin' }}</strong></a>
+            </div>
+        </header>
+        <main class="admin-main">
+            {% if notice %}<div class="admin-alert admin-alert-success">{{ notice }}</div>{% endif %}
+            {% if error %}<div class="admin-alert admin-alert-error">{{ error }}</div>{% endif %}
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+<script src="{{ url_for('static', path='js/admin.js') }}" defer></script>
+</body>
+</html>

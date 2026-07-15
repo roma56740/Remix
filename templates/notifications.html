@@ -1,0 +1,10 @@
+{% extends "account_base.html" %}
+{% block title %}Уведомления — RAMIX MUSIC{% endblock %}
+{% block account_content %}
+<section class="release-page-head"><div><h1>Уведомления</h1><p>Решения по релизам, питчингу, выплатам и сообщения платформы.</p></div>{% if notifications['items'] %}<form action="/account/notifications/read" method="post"><button class="flow-button flow-button-secondary" type="submit">Отметить всё прочитанным</button></form>{% endif %}</section>
+<section class="dashboard-panel notifications-panel">
+{% if notifications['items'] %}
+<div class="notification-list">{% for item in notifications['items'] %}<article class="{{ '' if item.is_read else 'is-unread' }}"><span class="notification-dot"></span><div><strong>{{ item.title }}</strong><p>{{ item.body }}</p><small>{{ item.created_at_label }}</small></div>{% if item.action_url %}<a href="{{ item.action_url }}">Открыть <svg><use href="#i-arrow-right"></use></svg></a>{% endif %}</article>{% endfor %}</div>
+{% else %}<div class="dashboard-empty"><span class="dashboard-empty-icon"><svg><use href="#i-bell"></use></svg></span><div><h3>Уведомлений пока нет</h3><p>Здесь появятся важные изменения по вашему аккаунту.</p></div></div>{% endif %}
+</section>
+{% endblock %}

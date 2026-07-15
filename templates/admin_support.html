@@ -1,0 +1,8 @@
+{% extends "admin_base.html" %}
+{% block title %}Поддержка — Админ-панель{% endblock %}
+{% block admin_content %}
+<section class="admin-page-head"><div><span class="admin-kicker">Обращения</span><h1>Поддержка пользователей</h1><p>Список заявок вынесен отдельно от переписки, чтобы ничего не перегружало страницу.</p></div></section>
+<section class="admin-panel"><div class="admin-filter-chips">{% for value,label in [('all','Все'),('open','Новые'),('in_progress','В работе'),('answered','С ответом'),('closed','Закрытые')] %}<a class="{{ 'is-active' if tickets.status_filter == value else '' }}" href="/admin/support?status={{ value }}">{{ label }} <b>{{ tickets.counts[value] or 0 }}</b></a>{% endfor %}</div>
+{% if tickets['items'] %}<div class="admin-ticket-list">{% for item in tickets['items'] %}<a href="/admin/support/{{ item.id }}"><span class="admin-ticket-id">#{{ item.id }}</span><div><strong>{{ item.subject }}</strong><p>{{ item.category }} · @{{ item.username }} · {{ item.user_email }}</p><small>{{ item.updated_at_label }} · сообщений {{ item.message_count }}{% if item.unread_count %} · непрочитано {{ item.unread_count }}{% endif %}</small></div><span class="status-badge status-{{ item.status_meta.class }}">{{ item.status_meta.label }}</span><svg><use href="#a-arrow-right"></use></svg></a>{% endfor %}</div>{% else %}<div class="admin-empty"><svg><use href="#a-message"></use></svg><div><h3>Заявок нет</h3><p>В выбранном статусе обращений пока нет.</p></div></div>{% endif %}
+</section>
+{% endblock %}

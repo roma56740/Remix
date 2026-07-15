@@ -1,0 +1,25 @@
+{% extends "admin_base.html" %}
+{% block title %}Обзор — Админ-панель RAMIX MUSIC{% endblock %}
+{% block admin_content %}
+<section class="admin-page-head"><div><span class="admin-kicker">Управление платформой</span><h1>Админ-панель RAMIX MUSIC</h1></div><a class="admin-button admin-button-primary" href="/admin/moderation"><svg><use href="#a-list"></use></svg>Открыть модерацию</a></section>
+
+<section class="admin-kpi-grid">
+    <article><span class="is-orange"><svg><use href="#a-list"></use></svg></span><div><strong>{{ overview.stats.moderation }}</strong><p>релизов ожидают модерации</p></div></article>
+    <article><span class="is-orange"><svg><use href="#a-disc"></use></svg></span><div><strong>{{ overview.stats.releases }}</strong><p>релизов в базе сервиса</p></div></article>
+    <article><span class="is-orange"><svg><use href="#a-users"></use></svg></span><div><strong>{{ overview.stats.users }}</strong><p>пользователей в системе</p></div></article>
+    <article><span class="is-red"><svg><use href="#a-file"></use></svg></span><div><strong>{{ overview.stats.quarter }}</strong><p>текущий квартал аналитики</p></div></article>
+</section>
+
+<section class="admin-panel">
+    <div class="admin-panel-head"><div><span class="admin-kicker">Быстрый доступ</span><h2>Поиск релизов</h2></div><a href="/admin/releases">Смотреть все <svg><use href="#a-arrow-right"></use></svg></a></div>
+    <form class="admin-search-row" action="/admin/releases" method="get"><label><svg><use href="#a-search"></use></svg><input name="q" placeholder="Название релиза, артист, UPC, ID пользователя или username"></label><select name="status"><option value="all">Все релизы</option><option value="moderation">На модерации</option><option value="accepted">Принятые</option><option value="changes_required">Требуют изменений</option><option value="rejected">Отклонённые</option><option value="draft">Черновики</option></select><button class="admin-button" type="submit"><svg><use href="#a-search"></use></svg>Найти</button></form>
+    {% if overview.releases %}<div class="admin-release-list compact">{% for item in overview.releases %}
+    <article><span class="admin-cover">{% if item.cover_url %}<img src="{{ item.cover_url }}" alt="">{% else %}{{ item.title[:1] }}{% endif %}</span><div class="admin-release-main"><strong>{{ item.title }}</strong><small>{{ item.artist_name }}</small><div><em>{{ item.release_type_label }}</em><em>{{ item.track_count }} тр.</em><em>ID: {{ item.id }}</em></div></div><div class="admin-release-user"><span>Пользователь</span><strong>@{{ item.username }}</strong></div><div class="admin-release-upc"><span>UPC</span><strong>{{ item.upc or 'Не назначен' }}</strong></div><span class="status-badge status-{{ item.status_meta.class }}">{{ item.status_meta.label }}</span><a class="admin-icon-button" href="/admin/releases/{{ item.id }}" aria-label="Открыть"><svg><use href="#a-eye"></use></svg></a></article>
+    {% endfor %}</div>{% else %}<div class="admin-empty"><svg><use href="#a-disc"></use></svg><div><h3>Релизов пока нет</h3><p>После создания пользователями они появятся здесь.</p></div></div>{% endif %}
+</section>
+
+<div class="admin-dashboard-columns">
+    <section class="admin-panel"><div class="admin-panel-head"><div><span class="admin-kicker">Очереди</span><h2>Что требует внимания</h2></div></div><div class="admin-queue-grid"><a href="/admin/moderation"><span>{{ overview.stats.moderation }}</span><strong>Модерация релизов</strong><small>Проверить метаданные, обложки и треки</small></a><a href="/admin/support"><span>{{ overview.stats.support }}</span><strong>Поддержка</strong><small>Новые и открытые обращения</small></a><a href="/admin/pitching"><span>{{ overview.stats.pitching }}</span><strong>Питчинг</strong><small>Редакционные заявки артистов</small></a></div></section>
+    <section class="admin-panel"><div class="admin-panel-head"><div><span class="admin-kicker">Журнал</span><h2>Последние действия</h2></div></div>{% if overview.audit %}<div class="admin-audit-list">{% for item in overview.audit %}<article><span><svg><use href="#a-check"></use></svg></span><div><strong>{{ item.action | replace('_',' ') }}</strong><small>{{ item.admin_name or 'Система' }} · {{ item.created_at_label }}</small></div></article>{% endfor %}</div>{% else %}<div class="admin-empty small"><svg><use href="#a-shield"></use></svg><div><h3>Журнал пока пуст</h3><p>Административные действия появятся здесь.</p></div></div>{% endif %}</section>
+</div>
+{% endblock %}

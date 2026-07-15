@@ -1,0 +1,183 @@
+{% extends "account_base.html" %}
+
+{% block title %}Поддержка — RAMIX MUSIC{% endblock %}
+
+{% block account_content %}
+<section class="release-page-head support-page-head">
+    <div>
+        <h1>Поддержка</h1>
+        <p>Сначала проверьте быстрые ответы. Если вопрос остался, создайте заявку и продолжайте диалог здесь.</p>
+    </div>
+    <a class="dashboard-publish support-create-link" href="#new-ticket">
+        <svg><use href="#i-message"></use></svg>
+        Новая заявка
+    </a>
+</section>
+
+{% if notice %}<div class="flow-notice flow-notice-success" role="status">{{ notice }}</div>{% endif %}
+{% if error %}<div class="flow-notice flow-notice-error" role="alert">{{ error }}</div>{% endif %}
+
+<section class="support-faq-section">
+    <div class="section-heading-row">
+        <div>
+            <span class="section-kicker">Быстрые ответы</span>
+            <h2>Возможно, ответ уже здесь</h2>
+        </div>
+        <span class="section-count">{{ faq_items | length }} вопросов</span>
+    </div>
+    {% if faq_items %}
+    <div class="support-faq-grid">
+        {% for item in faq_items %}
+        <details class="support-faq-item">
+            <summary>
+                <span><em>{{ item.category }}</em><strong>{{ item.question }}</strong></span>
+                <svg><use href="#i-plus"></use></svg>
+            </summary>
+            <p>{{ item.answer }}</p>
+        </details>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="dashboard-empty dashboard-empty-compact">
+        <span class="dashboard-empty-icon"><svg><use href="#i-help"></use></svg></span>
+        <div><h3>FAQ пока не опубликован</h3><p>Создайте заявку — поддержка ответит в этой же странице.</p></div>
+    </div>
+    {% endif %}
+</section>
+
+<div class="support-layout">
+    <section class="support-tickets-panel">
+        <div class="section-heading-row support-ticket-heading">
+            <div>
+                <span class="section-kicker">Ваши обращения</span>
+                <h2>История заявок</h2>
+            </div>
+            <span class="section-count">{{ ticket_data["counts"].all }}</span>
+        </div>
+
+        <nav class="support-status-tabs" aria-label="Фильтр заявок">
+            {% for value, label in [('all', 'Все'), ('open', 'Новые'), ('in_progress', 'В работе'), ('answered', 'С ответом'), ('closed', 'Закрытые')] %}
+            <a class="{{ 'is-active' if ticket_data["status_filter"] == value else '' }}" href="/account/support?status={{ value }}">
+                {{ label }} <span>{{ ticket_data["counts"][value] }}</span>
+            </a>
+            {% endfor %}
+        </nav>
+
+        {% if ticket_data["items"] %}
+        <div class="support-ticket-list">
+            {% for ticket in ticket_data["items"] %}
+            <a class="support-ticket-card {{ 'is-active' if selected_ticket and selected_ticket.id == ticket.id else '' }}" href="/account/support?status={{ ticket_data["status_filter"] }}&ticket={{ ticket.id }}#conversation">
+                <div class="support-ticket-card-top">
+                    <code>{{ ticket.public_id }}</code>
+                    <span class="status-badge status-{{ ticket.status_meta.class }}">{{ ticket.status_meta.label }}</span>
+                </div>
+                <strong>{{ ticket.subject }}</strong>
+                <p>{{ ticket.last_message or 'Сообщений пока нет.' }}</p>
+                <div class="support-ticket-card-meta">
+                    <span>{{ ticket.category }}</span>
+                    <time>{{ ticket.updated_at_label }}</time>
+                    {% if ticket.unread_count %}<em>{{ ticket.unread_count }} новый</em>{% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="dashboard-empty support-empty-list">
+            <span class="dashboard-empty-icon"><svg><use href="#i-message"></use></svg></span>
+            <div>
+                <h3>Заявок пока нет</h3>
+                <p>Когда вы обратитесь в поддержку, вся история и ответы появятся здесь.</p>
+            </div>
+            <a href="#new-ticket">Создать заявку</a>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="support-conversation-panel" id="conversation">
+        {% if selected_ticket %}
+        <div class="conversation-head">
+            <div>
+                <span class="section-kicker">{{ selected_ticket.public_id }} · {{ selected_ticket.category }}</span>
+                <h2>{{ selected_ticket.subject }}</h2>
+                <p>{{ selected_ticket.status_meta.description }}</p>
+            </div>
+            <span class="status-badge status-{{ selected_ticket.status_meta.class }}">{{ selected_ticket.status_meta.label }}</span>
+        </div>
+
+        <div class="support-message-list" aria-label="История сообщений">
+            {% for message in selected_ticket.messages %}
+            <article class="support-message support-message-{{ message.sender_type }}">
+                <div class="support-message-meta">
+                    <strong>{{ message.sender_label }}</strong>
+                    <time>{{ message.created_at_label }}</time>
+                </div>
+                <p>{{ message.body }}</p>
+            </article>
+            {% endfor %}
+        </div>
+
+        {% if selected_ticket.is_open %}
+        <form class="support-reply-form" action="/account/support/tickets/{{ selected_ticket.id }}/messages" method="post" novalidate data-submit-lock>
+            <label class="flow-field flow-field-textarea">
+                <span class="flow-label">Продолжить диалог</span>
+                <textarea name="message" maxlength="4000" minlength="2" placeholder="Напишите уточнение или ответ для поддержки" required></textarea>
+                <small class="field-message">От 2 до 4000 символов. Сообщение появится в истории сразу после отправки.</small>
+            </label>
+            <div class="support-reply-actions">
+                <button class="flow-button flow-button-primary" type="submit">Отправить <svg><use href="#i-send"></use></svg></button>
+            </div>
+        </form>
+        <form class="support-close-form" action="/account/support/tickets/{{ selected_ticket.id }}/close" method="post" data-confirm="Закрыть эту заявку? История останется доступна.">
+            <button type="submit">Закрыть заявку</button>
+        </form>
+        {% else %}
+        <div class="support-closed-note">
+            <svg><use href="#i-check"></use></svg>
+            <div><strong>Заявка закрыта</strong><p>История сохранена. Для нового вопроса создайте отдельную заявку.</p></div>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="support-conversation-empty">
+            <span><svg><use href="#i-message"></use></svg></span>
+            <h2>Выберите заявку</h2>
+            <p>Здесь появится полный диалог с поддержкой и актуальный статус обращения.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<section class="support-new-ticket" id="new-ticket">
+    <div class="support-new-copy">
+        <span class="section-kicker">Не нашли ответ?</span>
+        <h2>Создайте новую заявку</h2>
+        <p>Опишите ситуацию одним сообщением. Укажите название релиза или номер заявки, если вопрос связан с конкретными данными.</p>
+        <ul>
+            <li><svg><use href="#i-check"></use></svg> Ответ появится в личном кабинете</li>
+            <li><svg><use href="#i-check"></use></svg> Вся переписка останется в истории</li>
+            <li><svg><use href="#i-check"></use></svg> Статус обновляется после действий администратора</li>
+        </ul>
+    </div>
+    <form class="support-new-form" action="/account/support/tickets" method="post" novalidate data-submit-lock>
+        <div class="support-form-grid">
+            <label class="flow-field {{ 'has-error' if form_errors.subject else '' }}">
+                <span class="flow-label">Тема заявки <em>обязательно</em></span>
+                <input type="text" name="subject" value="{{ form_values.subject }}" minlength="3" maxlength="120" placeholder="Например: вопрос по модерации релиза" required>
+                <small class="field-message {{ 'is-error' if form_errors.subject else '' }}">{{ form_errors.subject or 'Коротко опишите суть вопроса.' }}</small>
+            </label>
+            <label class="flow-field {{ 'has-error' if form_errors.category else '' }}">
+                <span class="flow-label">Категория</span>
+                <select name="category">
+                    {% for category in support_categories %}<option value="{{ category }}" {{ 'selected' if form_values.category == category else '' }}>{{ category }}</option>{% endfor %}
+                </select>
+                <small class="field-message {{ 'is-error' if form_errors.category else '' }}">{{ form_errors.category or 'Категория помогает быстрее направить заявку.' }}</small>
+            </label>
+        </div>
+        <label class="flow-field flow-field-textarea {{ 'has-error' if form_errors.message else '' }}">
+            <span class="flow-label">Сообщение <em>обязательно</em></span>
+            <textarea name="message" minlength="10" maxlength="4000" placeholder="Опишите, что произошло, какой результат ожидали и к какому релизу относится вопрос" required>{{ form_values.message }}</textarea>
+            <small class="field-message {{ 'is-error' if form_errors.message else '' }}">{{ form_errors.message or 'От 10 до 4000 символов. Не отправляйте пароли и платёжные данные.' }}</small>
+        </label>
+        <button class="flow-button flow-button-primary support-submit" type="submit">Отправить заявку <svg><use href="#i-send"></use></svg></button>
+    </form>
+</section>
+{% endblock %}

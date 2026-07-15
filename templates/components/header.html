@@ -1,0 +1,44 @@
+<header class="site-header" data-header>
+    <div class="container header-inner">
+        <a class="brand" href="/" aria-label="RAMIX MUSIC — на главную">
+            <img src="{{ url_for('static', path='img/logo.png') }}" alt="RAMIX MUSIC">
+        </a>
+
+        <nav class="desktop-nav" aria-label="Главная навигация">
+            <a href="/#services">Сервисы</a>
+            <a href="/#about">О нас</a>
+            <a href="/#support">Помощь</a>
+            <a href="/#contacts">Контакты</a>
+        </nav>
+
+        <div class="header-actions">
+            {% if is_authenticated %}
+                <a class="button button-primary header-account" href="/account">Личный кабинет</a>
+            {% else %}
+                <a class="button button-outline header-register" href="/register">Регистрация</a>
+                <a class="button button-primary header-login" href="/login">Вход</a>
+            {% endif %}
+        </div>
+
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Открыть меню" data-menu-toggle>
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+
+    <div class="mobile-menu" id="mobile-menu" data-mobile-menu>
+        <nav aria-label="Мобильная навигация">
+            <a href="/#services">Сервисы</a>
+            <a href="/#about">О нас</a>
+            <a href="/#support">Помощь</a>
+            <a href="/#contacts">Контакты</a>
+        </nav>
+        <div class="mobile-menu-actions">
+            {% if is_authenticated %}
+                <a class="button button-primary" href="/account">Личный кабинет</a>
+            {% else %}
+                <a class="button button-outline" href="/register">Регистрация</a>
+                <a class="button button-primary" href="/login">Вход</a>
+            {% endif %}
+        </div>
+    </div>
+</header>

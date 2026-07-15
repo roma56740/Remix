@@ -1,0 +1,74 @@
+{% extends "account_base.html" %}
+{% block title %}Статистика — RAMIX MUSIC{% endblock %}
+{% block account_content %}
+<section class="release-page-head analytics-page-head">
+    <div>
+        <h1>Статистика</h1>
+        <p>Реальные прослушивания из базы данных по релизам и трекам.</p>
+    </div>
+    <div class="analytics-periods" aria-label="Период статистики">
+        {% for value, label in [('7','7 дней'),('30','30 дней'),('90','90 дней'),('365','Год')] %}
+        <a class="{{ 'is-active' if statistics.period == value else '' }}" href="/account/statistics?period={{ value }}">{{ label }}</a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="analytics-kpi-grid">
+    <article class="analytics-kpi is-accent"><span><svg><use href="#i-headphones"></use></svg></span><div><strong>{{ statistics.summary.period_total_label }}</strong><p>прослушиваний за {{ statistics.period_label | lower }}</p></div></article>
+    <article class="analytics-kpi"><span><svg><use href="#i-chart"></use></svg></span><div><strong>{{ statistics.summary.growth_label }}</strong><p>к предыдущему периоду</p></div></article>
+    <article class="analytics-kpi"><span><svg><use href="#i-disc"></use></svg></span><div><strong>{{ statistics.summary.published }}</strong><p>принято и опубликовано</p></div></article>
+    <article class="analytics-kpi"><span><svg><use href="#i-clock"></use></svg></span><div><strong>{{ statistics.summary.all_time_label }}</strong><p>за всё время</p></div></article>
+</section>
+
+<section class="dashboard-panel statistics-chart-panel" data-chart-root data-default-period="{{ statistics.period }}" data-chart='{{ statistics.chart_payload | tojson }}'>
+    <div class="dashboard-panel-head">
+        <div><span class="section-kicker">Динамика</span><h2>Прослушивания по дням</h2></div>
+        <span class="section-count">{{ statistics.period_label }}</span>
+    </div>
+    <div class="listens-chart statistics-chart">
+        <div class="chart-bars" data-chart-bars></div>
+        <div class="dashboard-empty dashboard-empty-compact" data-chart-empty hidden>
+            <span class="dashboard-empty-icon"><svg><use href="#i-chart"></use></svg></span>
+            <div><h3>За этот период данных нет</h3><p>После загрузки аналитики администратором здесь появится график.</p></div>
+        </div>
+    </div>
+</section>
+
+<div class="analytics-columns">
+    <section class="dashboard-panel">
+        <div class="dashboard-panel-head"><div><span class="section-kicker">Релизы</span><h2>Лидеры периода</h2></div><span class="section-count">{{ statistics.releases | length }}</span></div>
+        {% if statistics.releases %}
+        <div class="analytics-ranking-list">
+            {% for item in statistics.releases %}
+            <article>
+                <b>{{ loop.index }}</b>
+                <span class="analytics-cover">{% if item.cover_url %}<img src="{{ item.cover_url }}" alt="">{% else %}{{ item.title[:1] }}{% endif %}</span>
+                <div><strong>{{ item.title }}</strong><small>{{ item.artist_name }}</small></div>
+                <em>{{ item.listens_label }}</em>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="dashboard-empty dashboard-empty-compact"><span class="dashboard-empty-icon"><svg><use href="#i-disc"></use></svg></span><div><h3>Нет данных по релизам</h3><p>Прослушивания ещё не загружены.</p></div></div>
+        {% endif %}
+    </section>
+
+    <section class="dashboard-panel">
+        <div class="dashboard-panel-head"><div><span class="section-kicker">Треки</span><h2>Популярные треки</h2></div><span class="section-count">{{ statistics.tracks | length }}</span></div>
+        {% if statistics.tracks %}
+        <div class="analytics-ranking-list">
+            {% for item in statistics.tracks %}
+            <article>
+                <b>{{ loop.index }}</b>
+                <span class="analytics-cover">{% if item.cover_url %}<img src="{{ item.cover_url }}" alt="">{% else %}{{ item.title[:1] }}{% endif %}</span>
+                <div><strong>{{ item.title }}</strong><small>{{ item.artists }} · {{ item.release_title }}</small></div>
+                <em>{{ item.listens_label }}</em>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="dashboard-empty dashboard-empty-compact"><span class="dashboard-empty-icon"><svg><use href="#i-music"></use></svg></span><div><h3>Нет данных по трекам</h3><p>Детальная статистика появится после импорта аналитики.</p></div></div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

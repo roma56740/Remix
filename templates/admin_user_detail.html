@@ -1,0 +1,83 @@
+{% extends "admin_base.html" %}
+{% block title %}@{{ profile.username }} — Админ-панель{% endblock %}
+{% block admin_content %}
+<section class="admin-page-head">
+    <div><span class="admin-kicker">Пользователь #{{ profile.id }}</span><h1>@{{ profile.username }}</h1><p>{{ profile.name }} · {{ profile.email }}</p></div>
+    <a class="admin-button" href="/admin/users">К списку</a>
+</section>
+
+<section class="admin-user-profile-card admin-panel">
+    <div class="admin-user-avatar large">{{ profile.name[:2] | upper }}</div>
+    <div class="admin-user-identity"><h2>@{{ profile.username }}</h2><p>{{ profile.name }} · {{ profile.email }}</p><div><span class="status-badge status-{{ 'danger' if profile.is_blocked else 'success' }}">{{ 'Заблокирован' if profile.is_blocked else 'Активен' }}</span>{% if profile.is_admin %}<span class="status-badge status-warning">Администратор</span>{% endif %}</div></div>
+    <dl><div><dt>Баланс</dt><dd>{{ profile.balance_label }}</dd></div><div><dt>Ожидает</dt><dd>{{ profile.pending_label }}</dd></div><div><dt>Релизы</dt><dd>{{ profile.release_count }}</dd></div><div><dt>Прослушивания</dt><dd>{{ profile.listens_label }}</dd></div><div><dt>Регистрация</dt><dd>{{ profile.created_at_label }}</dd></div><div><dt>Последний вход</dt><dd>{{ profile.last_login_label }}</dd></div></dl>
+</section>
+
+<div class="admin-two-columns">
+    <section class="admin-panel">
+        <div class="admin-panel-head"><div><span class="admin-kicker">Финансы</span><h2>Изменить баланс</h2></div></div>
+        <form class="admin-form-grid" action="/admin/users/{{ profile.id }}/balance" method="post" data-submit-lock>
+            <label class="admin-field"><span>Сумма изменения, ₽</span><input type="number" name="amount" step="1" placeholder="Например, 1200 или -500" required><small>Положительное число начисляет, отрицательное списывает.</small></label>
+            <label class="admin-field"><span>Причина</span><input name="reason" maxlength="180" placeholder="Начисление за прослушивания" required><small>Пользователь увидит этот текст в истории операций.</small></label>
+            <button class="admin-button admin-button-primary" type="submit">Сохранить изменение</button>
+        </form>
+    </section>
+    <section class="admin-panel">
+        <div class="admin-panel-head"><div><span class="admin-kicker">Доступ</span><h2>{{ 'Разблокировать' if profile.is_blocked else 'Заблокировать' }} пользователя</h2></div></div>
+        <form class="admin-form-grid" action="/admin/users/{{ profile.id }}/block" method="post" data-submit-lock>
+            {% if not profile.is_blocked %}<label class="admin-field"><span>Причина блокировки</span><textarea name="reason" maxlength="600" placeholder="Опишите причину"></textarea><small>Причина будет сохранена и показана при попытке входа.</small></label>{% else %}<p class="admin-muted-box">{{ profile.blocked_reason or 'Причина не указана.' }}</p>{% endif %}
+            <input type="hidden" name="blocked" value="{{ 0 if profile.is_blocked else 1 }}">
+            <button class="admin-button {{ 'is-approve' if profile.is_blocked else 'is-reject' }}" type="submit">{{ 'Разблокировать аккаунт' if profile.is_blocked else 'Заблокировать аккаунт' }}</button>
+        </form>
+    </section>
+</div>
+
+<section class="admin-panel">
+    <div class="admin-panel-head"><div><span class="admin-kicker">Контент пользователя</span><h2>Релизы, треки и прослушивания</h2></div><span class="admin-count-pill">{{ profile.releases | length }}</span></div>
+    {% if profile.releases %}
+    <div class="admin-user-release-list admin-user-release-list-detailed">
+        {% for release in profile.releases %}
+        <article>
+            <div class="admin-user-release-head">
+                <span class="admin-cover">{% if release.cover_url %}<img src="{{ release.cover_url }}" alt="">{% else %}{{ release.title[:1] }}{% endif %}</span>
+                <div><strong>{{ release.title }}</strong><small>{{ release.artist_name }} · {{ release.release_type_label }} · {{ release.track_count }} тр.</small></div>
+                <span class="status-badge status-{{ release.status_meta.class }}">{{ release.status_meta.label }}</span>
+                <a class="admin-icon-button" href="/admin/releases/{{ release.id }}" title="Открыть релиз"><svg><use href="#a-eye"></use></svg></a>
+            </div>
+            <div class="admin-inline-edit">
+                <form action="/admin/releases/{{ release.id }}/listens" method="post" data-submit-lock>
+                    <label><span>Прослушивания релиза</span><input type="number" name="target" min="0" step="1" value="{{ release.listens }}"></label>
+                    <button class="admin-button" type="submit">Сохранить</button>
+                </form>
+                <strong class="admin-release-total">{{ release.listens_label }} прослушиваний</strong>
+            </div>
+            {% if release.tracks %}
+            <details class="admin-user-tracks">
+                <summary>Треки релиза <b>{{ release.tracks | length }}</b><svg><use href="#a-arrow-right"></use></svg></summary>
+                <div>
+                    {% for track in release.tracks %}
+                    <form action="/admin/tracks/{{ track.id }}/listens" method="post" data-submit-lock>
+                        <input type="hidden" name="release_id" value="{{ release.id }}">
+                        <span><strong>{{ '%02d'|format(loop.index) }}. {{ track.title }}</strong><small>{{ track.artists }}{% if track.isrc %} · {{ track.isrc }}{% endif %}</small></span>
+                        <label><span>Прослушивания</span><input type="number" name="target" min="0" step="1" value="{{ track.listens }}"></label>
+                        <button class="admin-icon-button" type="submit" title="Сохранить"><svg><use href="#a-check"></use></svg></button>
+                        <a class="admin-icon-button" href="/admin/tracks/{{ track.id }}/audio" title="Скачать аудио"><svg><use href="#a-download"></use></svg></a>
+                    </form>
+                    {% endfor %}
+                </div>
+            </details>
+            {% else %}
+            <p class="admin-release-no-tracks">В этом релизе пока нет треков.</p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="admin-empty"><svg><use href="#a-disc"></use></svg><div><h3>У пользователя нет релизов</h3><p>Здесь появится контент после создания.</p></div></div>
+    {% endif %}
+</section>
+
+<section class="admin-panel">
+    <div class="admin-panel-head"><div><span class="admin-kicker">Операции</span><h2>Последние изменения баланса</h2></div></div>
+    {% if profile.transactions %}<div class="admin-transaction-list">{% for item in profile.transactions %}<article><div><strong>{{ item.title }}</strong><small>{{ item.created_at_label }} · {{ item.release_title or 'Без релиза' }}</small></div><span class="status-badge status-{{ item.status_meta.class }}">{{ item.status_meta.label }}</span><em>{{ item.amount_label }}</em></article>{% endfor %}</div>{% else %}<div class="admin-empty small"><svg><use href="#a-wallet"></use></svg><div><h3>Операций пока нет</h3><p>История появится после начислений или списаний.</p></div></div>{% endif %}
+</section>
+{% endblock %}
