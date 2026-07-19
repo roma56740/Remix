@@ -739,6 +739,35 @@ def migration_015_telegram_integration(connection: sqlite3.Connection) -> None:
 
 
 
+def migration_016_static_pitching_resources(connection: sqlite3.Connection) -> None:
+    """Switch pitching to direct external resources and add current platform links."""
+    resources = (
+        ("МТС Музыка", "mts-music", "/static/img/mts-music.png", "https://music.mts.ru/", 10),
+        ("Deezer", "deezer", "/static/img/deezer.png", "https://creators.deezer.com/", 20),
+        ("Spotify", "spotify", "/static/img/spotify.svg", "https://artists.spotify.com/", 30),
+        ("TikTok", "tiktok", "/static/img/tiktok.png", "https://artists.tiktok.com/", 40),
+        ("VK Музыка", "vk-music", "/static/img/vk-music.png", "https://vk.com/vkmusic", 50),
+        ("Яндекс Музыка", "yandex-music", "/static/img/yandex-music.png", "https://music.yandex.ru/", 60),
+        ("Звук", "zvuk", "/static/img/zvuk.png", "https://zvuk.com/", 70),
+        ("TIDAL", "tidal", "/static/img/tidal.svg", "https://artists.tidal.com/", 80),
+        ("Apple Music", "apple-music", "/static/img/apple-music.png", "https://artists.apple.com/", 90),
+    )
+    for name, slug, logo_path, support_url, sort_order in resources:
+        connection.execute(
+            """
+            INSERT INTO pitching_platforms (name, slug, logo_path, support_url, is_active, sort_order)
+            VALUES (?, ?, ?, ?, 1, ?)
+            ON CONFLICT(slug) DO UPDATE SET
+                name = excluded.name,
+                logo_path = excluded.logo_path,
+                support_url = excluded.support_url,
+                is_active = 1,
+                sort_order = excluded.sort_order
+            """,
+            (name, slug, logo_path, support_url, sort_order),
+        )
+
+
 MIGRATIONS: tuple[Migration, ...] = (
     (1, "users", migration_001_users),
     (2, "user profile fields", migration_002_user_profile_fields),
@@ -755,6 +784,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     (13, "admin platform and analytics", migration_013_admin_platform_and_analytics),
     (14, "bootstrap first administrator", migration_014_bootstrap_first_admin),
     (15, "telegram integration and notification outbox", migration_015_telegram_integration),
+    (16, "static pitching resources", migration_016_static_pitching_resources),
 )
 
 

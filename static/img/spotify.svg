@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" role="img" aria-label="Spotify">
+  <circle cx="31" cy="32" r="25" fill="#1ed760"/>
+  <path d="M18 25c10-3 23-2 31 3M19 33c9-2 20-1 28 3M21 41c7-1 16 0 22 3" fill="none" stroke="#07140b" stroke-width="4" stroke-linecap="round"/>
+  <text x="67" y="42" fill="#1ed760" font-family="Arial, sans-serif" font-size="31" font-weight="700">Spotify</text>
+</svg>

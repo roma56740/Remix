@@ -429,21 +429,37 @@ def queue_new_release(release_id: int) -> None:
 
 def queue_release_status(release_id: int, status_value: str, comment: str = "") -> None:
     labels = {
-        "accepted": "✅ Релиз принят",
-        "published": "🚀 Релиз опубликован",
-        "changes_required": "🛠 Нужны изменения",
-        "rejected": "❌ Релиз отклонён",
-        "moderation": "🕘 Релиз на модерации",
+        "accepted": "✅ прошёл проверку",
+        "published": "🚀 опубликован",
+        "changes_required": "🛠 требует изменений",
+        "rejected": "❌ отклонён",
+        "moderation": "🕘 отправлен на модерацию",
     }
     with _connect() as connection:
         row = connection.execute(
             "SELECT id, user_id, title FROM releases WHERE id = ?", (release_id,)
         ).fetchone()
     if row:
-        text = f"{labels.get(status_value, '💿 Статус релиза изменён')}\n<b>{_h(row['title'])}</b>"
+        text = f"💿 Релиз #{row['id']} — <b>{_h(row['title'])}</b> {labels.get(status_value, 'изменил статус')}"
         if comment.strip():
             text += f"\n\nКомментарий: {_h(comment.strip()[:900])}"
         queue_user_message(int(row["user_id"]), "release_status", text, f"/account/releases")
+
+
+def queue_release_upc(release_id: int, upc: str) -> None:
+    with _connect() as connection:
+        row = connection.execute(
+            "SELECT user_id, title FROM releases WHERE id = ?", (release_id,)
+        ).fetchone()
+    if not row:
+        return
+    text = (
+        "🔢 <b>UPC релиза назначен</b>\n"
+        f"Релиз: {_h(row['title'])}\nUPC: <code>{_h(upc)}</code>"
+        if upc
+        else "ℹ️ <b>UPC релиза удалён</b>\n" f"Релиз: {_h(row['title'])}"
+    )
+    queue_user_message(int(row["user_id"]), "release_upc", text, "/account/releases")
 
 
 def queue_new_support_ticket(ticket_id: int, *, new_message: bool = False) -> None:

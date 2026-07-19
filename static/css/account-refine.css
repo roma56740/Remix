@@ -1,0 +1,91 @@
+/* RAMIX MUSIC — final cabinet density, accessibility and responsive refinement */
+:root{
+    --account-sidebar:248px;
+    --account-gap:20px;
+    --account-panel:#181818;
+    --account-panel-2:#202020;
+    --account-line:rgba(255,255,255,.09);
+}
+
+.account-page{font-size:14px;line-height:1.45;overflow-x:hidden}
+.account-layout{grid-template-columns:var(--account-sidebar) minmax(0,1fr)}
+.account-sidebar{padding:20px 16px 22px}
+.sidebar-head{min-height:58px}.sidebar-logo{width:66px}
+.sidebar-create{min-height:56px;margin:14px 0 24px;padding:10px 16px;border-radius:9px;font-size:12px;gap:13px}
+.sidebar-create svg{width:19px;height:19px}
+.sidebar-nav{gap:5px}.sidebar-caption{margin:0 10px 9px;font-size:12px}
+.sidebar-link{min-height:44px;padding:0 12px;border-radius:9px;grid-template-columns:20px minmax(0,1fr) auto;gap:10px;font-size:12px}
+.sidebar-link svg{width:15px;height:15px}.sidebar-link em{min-width:20px;height:20px;font-size:9px}
+.sidebar-caption-account{margin-top:22px}.sidebar-logout{margin-top:28px}.sidebar-logout button{min-height:41px;font-size:11px}
+
+.account-topbar{height:62px;padding:0 clamp(18px,2.4vw,34px)}
+.account-back{min-height:34px;padding:0 15px;font-size:9px;border-radius:7px}
+.topbar-icon{width:34px;height:34px}.topbar-icon svg{width:15px;height:15px}
+.topbar-balance{font-size:10px}.topbar-profile{font-size:11px}.topbar-avatar{width:34px;height:34px;font-size:10px}
+.account-main{width:min(100%,1320px);margin:0 auto;padding:clamp(28px,3vw,44px) clamp(20px,3vw,40px) 90px}
+
+.dashboard-head,.release-page-head,.settings-page-head,.analytics-page-head{min-height:auto;margin-bottom:24px;align-items:center}
+.dashboard-head h1,.release-page-head h1,.settings-page-head h1,.analytics-page-head h1{font-size:clamp(34px,3.4vw,48px);line-height:1;letter-spacing:-.04em}
+.dashboard-head p,.release-page-head p,.settings-page-head p,.analytics-page-head p{margin-top:10px;font-size:13px;line-height:1.55;color:#929292}
+.dashboard-publish,.flow-button{min-height:42px;padding:0 17px;font-size:10px;border-radius:8px}
+
+.dashboard-panel,.release-panel,.settings-card,.support-faq-section,.support-new-ticket,.pitching-resource-panel,.rules-card{border-radius:15px}
+.dashboard-panel{padding:22px}.dashboard-panel-head h2,.release-panel-heading h2,.section-heading-row h2{font-size:22px;line-height:1.15}
+.dashboard-panel-head p,.release-panel-heading p{font-size:12px;line-height:1.55}
+.section-kicker{font-size:10px}.section-count{font-size:11px}
+
+/* Forms: consistent size and a reserved help/error area below every field. */
+.account-page :where(input[type="text"],input[type="search"],input[type="email"],input[type="password"],input[type="number"],input[type="date"],input[type="datetime-local"],input[type="time"],input[type="url"],input[type="tel"],select){min-height:50px;padding:0 15px;border-radius:9px;font-size:14px;line-height:1.3}
+.account-page textarea{min-height:144px;padding:14px 15px;border-radius:9px;font-size:14px;line-height:1.55}
+.account-page .flow-field{gap:8px;position:relative}
+.account-page .flow-label,.account-page .settings-field>span:first-child{min-height:22px;font-size:12px;line-height:1.45;color:#d2d2d2}
+.account-page .field-message,.account-page .form-help,.account-page .telegram-status-note{min-height:32px;padding-top:3px;font-size:10.5px;line-height:1.5;color:#858585}
+.flow-label-with-help{display:flex!important;align-items:center;justify-content:flex-start;gap:7px;overflow:visible}
+.required-mark{margin-left:3px;color:var(--accent);font-size:14px;font-style:normal}
+
+.field-help{position:relative;z-index:8;width:18px;height:18px;min-width:18px;padding:0;border:1px solid rgba(227,123,71,.78);border-radius:50%;background:rgba(227,123,71,.08);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;cursor:help;vertical-align:middle}
+.field-help-mark{font:800 11px/1 Montserrat,sans-serif;transform:translateY(-.2px)}
+.field-help-tooltip{position:absolute;left:50%;bottom:calc(100% + 10px);z-index:120;width:min(300px,calc(100vw - 36px));padding:12px 13px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:#3b3b3b;color:#f2f2f2;box-shadow:0 16px 38px rgba(0,0,0,.5);font-size:11px;font-weight:500;line-height:1.5;text-align:left;text-transform:none;letter-spacing:0;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,7px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease}
+.field-help-tooltip::after{content:"";position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#3b3b3b;transform:translateX(-50%)}
+.field-help:hover .field-help-tooltip,.field-help:focus-visible .field-help-tooltip,.field-help.is-open .field-help-tooltip{opacity:1;visibility:visible;transform:translate(-50%,0);pointer-events:auto}
+.field-help:focus-visible{outline:2px solid rgba(227,123,71,.45);outline-offset:3px}
+
+/* Release flow */
+.release-steps{gap:14px;margin-bottom:24px}.release-step{min-height:64px;padding:13px 16px;border-radius:11px}.release-step b{font-size:12px}.release-step span{font-size:12px;line-height:1.3}
+.release-panel{padding:28px}.release-panel-heading{margin-bottom:25px}.release-panel-heading h2{font-size:25px}.release-panel-heading p{margin-top:7px;font-size:12px}
+.release-info-grid{grid-template-columns:minmax(360px,.88fr) minmax(420px,1.12fr);gap:28px}
+.cover-uploader,.cover-preview{min-height:520px;border-radius:12px}.cover-placeholder strong{font-size:16px}.cover-placeholder small{font-size:11px;line-height:1.55}.cover-change{font-size:10px}
+.release-fields{gap:10px}.release-radio-row{min-height:48px;gap:22px}.release-radio{font-size:13px}.flow-check{padding:13px 0}.flow-check strong{font-size:12px}.flow-check small{font-size:10px;line-height:1.5}
+.release-form-actions{margin-top:27px;padding-top:22px}
+
+.tracks-panel{padding:28px}.track-list{gap:12px}.track-row{min-height:96px;padding:13px 14px;border-radius:12px;grid-template-columns:68px minmax(180px,1.1fr) minmax(150px,.9fr) minmax(170px,1fr) 90px auto;gap:14px}
+.track-cover-mini{width:68px;height:68px;border-radius:9px}.track-main-meta strong{font-size:13px}.track-main-meta span{font-size:10px}.track-main-meta small{font-size:9px}
+.track-meta-cell dt,.track-explicit span{font-size:9px}.track-meta-cell dd,.track-explicit strong{font-size:11px}.track-icon-button{width:36px;height:36px}
+.track-modal-dialog{width:min(1080px,calc(100vw - 34px));max-height:calc(100svh - 34px);padding:28px;border-radius:16px}.track-modal-head h2{font-size:24px}.track-modal-head p{font-size:11px}.track-form-grid{gap:20px}.track-form-column{gap:10px}.audio-upload-control{min-height:86px;padding:13px}.audio-upload-copy strong{font-size:12px}.audio-upload-copy small{font-size:10px}.audio-upload-button{min-height:38px;font-size:10px}.timecode-grid label>span{font-size:10px}
+
+.review-data-row{min-height:52px;padding:0 15px}.review-data-row span,.review-data-row strong{font-size:12px}.review-comment-field textarea{min-height:120px}
+
+/* Static pitching resources */
+.pitching-resource-intro{margin-bottom:22px;padding:20px 22px;border:1px solid rgba(227,123,71,.24);border-radius:14px;background:linear-gradient(135deg,rgba(227,123,71,.08),rgba(255,255,255,.015))}
+.pitching-resource-intro h2{margin:0;font-size:22px}.pitching-resource-intro p{max-width:900px;margin:9px 0 0;color:#929292;font-size:12px;line-height:1.65}
+.pitching-resource-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.pitching-resource-card{position:relative;min-height:150px;padding:22px;border:1px solid var(--account-line);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(227,123,71,.1),transparent 45%),linear-gradient(145deg,#1b1b1b,#151515);color:#fff;display:grid;align-content:space-between;gap:24px;overflow:hidden;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.pitching-resource-card:hover{transform:translateY(-3px);border-color:rgba(227,123,71,.5);box-shadow:0 16px 35px rgba(0,0,0,.25)}
+.pitching-resource-brand{min-height:48px;display:flex;align-items:center;gap:14px}.pitching-resource-brand img{max-width:150px;max-height:42px;object-fit:contain}.pitching-resource-brand strong{font-size:20px}.pitching-resource-action{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#aaa;font-size:11px;text-decoration:underline;text-underline-offset:4px}.pitching-resource-action svg{width:18px;height:18px;color:var(--accent);transition:transform .2s ease}.pitching-resource-card:hover .pitching-resource-action svg{transform:translateX(4px)}
+.pitching-resource-note{margin-top:18px;color:#747474;font-size:11px;line-height:1.55}
+
+/* Balance without an inline payout blank */
+.balance-summary-grid{gap:16px;margin-bottom:20px}.balance-summary-grid article{min-height:132px;padding:20px;border-radius:14px}.balance-summary-grid span{font-size:11px}.balance-summary-grid strong{font-size:25px}.balance-summary-grid p{font-size:10px}.balance-summary-grid .balance-hero-card strong{font-size:38px}
+.balance-layout{grid-template-columns:1fr}.balance-operation-list{gap:10px}.balance-operation-list article{min-height:70px;padding:14px;border-radius:11px;grid-template-columns:40px minmax(0,1fr) auto auto}.balance-operation-icon{width:38px;height:38px}.balance-operation-list strong{font-size:12px}.balance-operation-list small{font-size:10px}.balance-operation-list em{font-size:12px}
+.balance-telegram-cta{margin-bottom:20px;padding:22px;border:1px solid rgba(227,123,71,.35);border-radius:14px;background:linear-gradient(135deg,rgba(227,123,71,.11),rgba(255,255,255,.015));display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:16px}.balance-telegram-cta>span{width:48px;height:48px;border-radius:12px;background:rgba(227,123,71,.14);color:var(--accent);display:flex;align-items:center;justify-content:center}.balance-telegram-cta>span svg{width:23px;height:23px}.balance-telegram-cta h2{margin:0;font-size:20px}.balance-telegram-cta p{margin:7px 0 0;color:#909090;font-size:11px;line-height:1.55}
+
+/* Support redirect card */
+.support-telegram-page{min-height:calc(100svh - 190px);display:grid;place-items:center}.support-telegram-card{width:min(760px,100%);padding:34px;border:1px solid rgba(227,123,71,.32);border-radius:17px;background:radial-gradient(circle at 85% 0,rgba(227,123,71,.13),transparent 40%),#181818;text-align:center}.support-telegram-icon{width:70px;height:70px;margin:0 auto 18px;border-radius:18px;background:rgba(227,123,71,.13);color:var(--accent);display:grid;place-items:center}.support-telegram-icon svg{width:32px;height:32px}.support-telegram-card h1{margin:0;font-size:clamp(30px,4vw,44px);font-style:italic;text-transform:uppercase}.support-telegram-card p{max-width:590px;margin:14px auto 0;color:#999;font-size:13px;line-height:1.65}.support-telegram-actions{margin-top:24px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+
+/* Small, calm animation only; disabled for users who request reduced motion. */
+@media (prefers-reduced-motion:no-preference){.account-main>*{animation:ramix-rise .32s ease both}.account-main>*:nth-child(2){animation-delay:.035s}.account-main>*:nth-child(3){animation-delay:.07s}.account-main>*:nth-child(4){animation-delay:.105s}@keyframes ramix-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
+
+@media(max-width:1180px){:root{--account-sidebar:224px}.account-main{padding-inline:24px}.release-info-grid{grid-template-columns:minmax(300px,.8fr) minmax(360px,1.2fr)}.cover-uploader,.cover-preview{min-height:450px}.pitching-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.track-row{grid-template-columns:60px minmax(160px,1fr) minmax(140px,.8fr) minmax(150px,.9fr) auto}.track-explicit{display:none}}
+@media(max-width:980px){.account-layout{grid-template-columns:1fr}.account-sidebar{width:min(320px,88vw)}.account-topbar{height:60px}.account-main{padding:26px 18px 72px}.release-info-grid{grid-template-columns:1fr}.cover-uploader,.cover-preview{min-height:min(70vw,520px)}.track-row{grid-template-columns:58px minmax(0,1fr) auto}.track-meta-cell,.track-explicit{display:none}.balance-telegram-cta{grid-template-columns:48px minmax(0,1fr)}.balance-telegram-cta .flow-button{grid-column:1/-1;width:100%}}
+@media(max-width:720px){.dashboard-head,.release-page-head,.settings-page-head,.analytics-page-head{align-items:flex-start;flex-direction:column}.dashboard-head h1,.release-page-head h1,.settings-page-head h1,.analytics-page-head h1{font-size:32px}.dashboard-publish{width:100%;justify-content:center}.release-panel,.tracks-panel{padding:18px}.release-steps{display:grid;grid-template-columns:1fr}.release-step{min-height:56px}.pitching-resource-grid{grid-template-columns:1fr}.pitching-resource-card{min-height:128px}.track-modal-dialog{padding:19px}.track-form-grid{grid-template-columns:1fr}.track-row{padding:11px}.balance-summary-grid{grid-template-columns:1fr 1fr}.balance-operation-list article{grid-template-columns:38px minmax(0,1fr) auto}.balance-operation-list article>.status-badge{grid-column:2;justify-self:start}.balance-operation-list em{grid-column:3;grid-row:1}.support-telegram-card{padding:25px 18px}}
+@media(max-width:520px){.account-main{padding:22px 12px 64px}.account-topbar{padding:0 12px}.account-back span,.topbar-balance,.topbar-profile strong{display:none}.account-back{width:36px;padding:0;justify-content:center}.dashboard-head h1,.release-page-head h1,.settings-page-head h1,.analytics-page-head h1{font-size:29px}.release-panel-heading h2,.dashboard-panel-head h2,.section-heading-row h2{font-size:19px}.account-page :where(input[type="text"],input[type="search"],input[type="email"],input[type="password"],input[type="number"],input[type="date"],input[type="datetime-local"],input[type="time"],input[type="url"],input[type="tel"],select){font-size:16px}.account-page textarea{font-size:16px}.field-help-tooltip{position:fixed;left:16px!important;right:16px;bottom:20px;width:auto;transform:translateY(8px)}.field-help-tooltip::after{display:none}.field-help:hover .field-help-tooltip,.field-help:focus-visible .field-help-tooltip,.field-help.is-open .field-help-tooltip{transform:none}.cover-uploader,.cover-preview{min-height:340px}.track-row{grid-template-columns:50px minmax(0,1fr);gap:10px}.track-cover-mini{width:50px;height:50px}.track-actions{grid-column:1/-1;justify-content:flex-end}.balance-summary-grid{grid-template-columns:1fr}.balance-summary-grid article{min-height:105px}.balance-summary-grid .balance-hero-card strong{font-size:32px}.balance-operation-list article{padding:11px}.balance-telegram-cta{padding:17px;grid-template-columns:42px minmax(0,1fr)}.balance-telegram-cta>span{width:42px;height:42px}.support-telegram-actions{display:grid}.support-telegram-actions>*{width:100%}}

@@ -39,7 +39,7 @@
         <a class="sidebar-link {{ 'is-active' if active_section == 'settings' else '' }}" href="/account/settings">
             <svg><use href="#i-settings"></use></svg><span>Настройки</span>
         </a>
-        <a class="sidebar-link {{ 'is-active' if active_section == 'support' else '' }}" href="/account/support">
+        <a class="sidebar-link {{ 'is-active' if active_section == 'support' else '' }}" href="{{ telegram_bot_url or '/account/support' }}"{% if telegram_bot_url %} target="_blank" rel="noopener noreferrer"{% endif %}>
             <svg><use href="#i-help"></use></svg><span>Поддержка</span>
         </a>
 

@@ -852,6 +852,46 @@ def set_release_listens(admin_user_id: int, release_id: int, target: int) -> tup
     return True, f"Прослушивания релиза обновлены: {target:,}.".replace(",", " ")
 
 
+def set_release_upc(admin_user_id: int, release_id: int, upc: str) -> tuple[bool, str]:
+    value = "".join(ch for ch in upc.strip() if ch.isdigit())
+    if value and not 8 <= len(value) <= 18:
+        return False, "UPC должен содержать от 8 до 18 цифр."
+    now = _now()
+    with _connect() as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        row = connection.execute(
+            "SELECT user_id, title, upc FROM releases WHERE id = ?",
+            (release_id,),
+        ).fetchone()
+        if not row:
+            connection.rollback()
+            return False, "Релиз не найден."
+        if value:
+            duplicate = connection.execute(
+                "SELECT id FROM releases WHERE upc = ? AND id != ? LIMIT 1",
+                (value, release_id),
+            ).fetchone()
+            if duplicate:
+                connection.rollback()
+                return False, "Этот UPC уже назначен другому релизу."
+        previous = str(row["upc"] or "")
+        connection.execute(
+            "UPDATE releases SET upc = ?, updated_at = ? WHERE id = ?",
+            (value or None, now, release_id),
+        )
+        create_notification(
+            connection,
+            int(row["user_id"]),
+            title="UPC релиза обновлён",
+            body=(f"Релиз «{row['title']}»: UPC {value}." if value else f"Релиз «{row['title']}»: UPC удалён."),
+            notification_type="success" if value else "info",
+            action_url="/account/releases",
+        )
+        _audit(connection, admin_user_id, "set_release_upc", "release", release_id, {"previous": previous, "value": value})
+        connection.commit()
+    return True, "UPC сохранён и показан пользователю." if value else "UPC удалён."
+
+
 def set_track_listens(admin_user_id: int, track_id: int, target: int) -> tuple[bool, str]:
     if target < 0:
         return False, "Количество прослушиваний не может быть отрицательным."

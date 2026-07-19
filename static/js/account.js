@@ -218,3 +218,32 @@
     const messageList = document.querySelector(".support-message-list");
     if (messageList) messageList.scrollTop = messageList.scrollHeight;
 })();
+
+(() => {
+    const helpButtons = Array.from(document.querySelectorAll("[data-field-help]"));
+    if (!helpButtons.length) return;
+
+    const closeAll = (except = null) => {
+        helpButtons.forEach((button) => {
+            if (button === except) return;
+            button.classList.remove("is-open");
+            button.setAttribute("aria-expanded", "false");
+        });
+    };
+
+    helpButtons.forEach((button) => {
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const shouldOpen = !button.classList.contains("is-open");
+            closeAll(button);
+            button.classList.toggle("is-open", shouldOpen);
+            button.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+        });
+    });
+
+    document.addEventListener("click", () => closeAll());
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeAll();
+    });
+})();

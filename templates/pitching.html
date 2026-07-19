@@ -1,151 +1,36 @@
 {% extends "account_base.html" %}
-
-{% block title %}Питчинг — RAMIX MUSIC{% endblock %}
-
+{% block title %}Питчинг релизов — RAMIX MUSIC{% endblock %}
 {% block account_content %}
-<section class="release-page-head pitching-page-head">
+<section class="release-page-head">
     <div>
-        <span class="section-kicker">Продвижение до релиза</span>
         <h1>Питчинг релизов</h1>
-        <p>Передайте принятый релиз редактору выбранной площадки. Это заявка на рассмотрение, а не гарантия попадания в плейлист.</p>
+        <p>Официальные кабинеты и формы музыкальных площадок. Выберите сервис — ссылка откроется в новой вкладке.</p>
     </div>
 </section>
 
-{% if notice %}<div class="flow-notice flow-notice-success" role="status">{{ notice }}</div>{% endif %}
-{% if error %}<div class="flow-notice flow-notice-error" role="alert">{{ error }}</div>{% endif %}
-
-<section class="pitching-how-panel">
-    <div class="section-heading-row">
-        <div><span class="section-kicker">Как это работает</span><h2>Четыре понятных шага</h2></div>
-        <span class="section-count">без оплаты</span>
+<section class="pitching-resource-panel">
+    <div class="pitching-resource-intro">
+        <h2>Ресурсы для артистов</h2>
+        <p>RAMIX MUSIC не принимает и не модерирует заявки на этой странице. Вы переходите на официальный ресурс выбранной площадки и работаете с ним напрямую.</p>
     </div>
-    <div class="pitching-how-grid">
-        <article><b>01</b><div><strong>Завершите релиз</strong><p>Заполните данные, загрузите обложку и аудио, затем отправьте релиз на модерацию.</p></div></article>
-        <article><b>02</b><div><strong>Дождитесь принятия</strong><p>Для питчинга доступны только релизы со статусом «Принят» или «Опубликован».</p></div></article>
-        <article><b>03</b><div><strong>Оставьте {{ pitching.minimum_days }} дней</strong><p>Дата выхода должна быть не раньше {{ pitching.minimum_date_label }}, чтобы редактор успел рассмотреть заявку.</p></div></article>
-        <article><b>04</b><div><strong>Следите за статусом</strong><p>Решение и комментарий администратора появятся в истории заявок на этой странице.</p></div></article>
-    </div>
-</section>
 
-<div class="pitching-layout pitching-layout-v2">
-    <section class="pitching-create-panel">
-        <div class="section-heading-row">
-            <div><span class="section-kicker">Новая заявка</span><h2>Отправить релиз редактору</h2></div>
-            <span class="section-count">1 релиз · 1 площадка</span>
-        </div>
-
-        {% if pitching.eligible_releases and pitching.platforms %}
-        <form class="pitching-form" action="/account/pitching" method="post" novalidate data-submit-lock>
-            <fieldset class="pitching-release-select {{ 'has-error' if form_errors.release_id else '' }}">
-                <legend class="flow-label">1. Релиз <em>обязательно</em></legend>
-                <div class="pitching-release-options">
-                    {% for release in pitching.eligible_releases %}
-                    <label class="pitching-release-option">
-                        <input type="radio" name="release_id" value="{{ release.id }}" {{ 'checked' if form_values.release_id == release.id|string else '' }} required>
-                        <span class="pitch-release-cover">
-                            {% if release.cover_url %}<img src="{{ release.cover_url }}" alt="Обложка {{ release.title }}">{% else %}<b>{{ release.title[:1] }}</b>{% endif %}
-                        </span>
-                        <span><strong>{{ release.title }}</strong><small>{{ release.artist_name }} · выход {{ release.release_date_label }} · {{ release.track_count }} тр.</small></span>
-                        <svg><use href="#i-check"></use></svg>
-                    </label>
-                    {% endfor %}
-                </div>
-                <small class="field-message {{ 'is-error' if form_errors.release_id else '' }}">{{ form_errors.release_id or 'Здесь отображаются только принятые релизы с достаточным запасом до даты выхода.' }}</small>
-            </fieldset>
-
-            <fieldset class="pitching-platform-select {{ 'has-error' if form_errors.platform_id else '' }}">
-                <legend class="flow-label">2. Площадка <em>обязательно</em></legend>
-                <div class="pitching-platform-grid pitching-platform-grid-v2">
-                    {% for platform in pitching.platforms %}
-                    <label class="pitching-platform-option pitching-platform-option-v2">
-                        <input type="radio" name="platform_id" value="{{ platform.id }}" {{ 'checked' if form_values.platform_id == platform.id|string else '' }} required>
-                        <span class="pitching-platform-logo">
-                            {% if platform.logo_path %}<img src="{{ platform.logo_path }}" alt="{{ platform.name }}">{% else %}<strong>{{ platform.name }}</strong>{% endif %}
-                        </span>
-                        <span class="pitching-platform-copy"><strong>{{ platform.name }}</strong><small>{{ platform.description or 'Редакционное рассмотрение релиза площадкой.' }}</small></span>
-                        <span class="pitching-platform-check"><svg><use href="#i-check"></use></svg></span>
-                    </label>
-                    {% endfor %}
-                </div>
-                <small class="field-message {{ 'is-error' if form_errors.platform_id else '' }}">{{ form_errors.platform_id or 'На каждую площадку отправляется отдельная заявка. Можно выбрать другую площадку после отправки первой.' }}</small>
-            </fieldset>
-
-            <label class="flow-field flow-field-textarea pitching-story-field {{ 'has-error' if form_errors.message else '' }}">
-                <span class="flow-label">3. История и план продвижения</span>
-                <textarea name="message" maxlength="2000" placeholder="Например: о чём трек, для какой аудитории он создан, какие запланированы клипы, публикации, концерты или реклама">{{ form_values.message }}</textarea>
-                <small class="field-message {{ 'is-error' if form_errors.message else '' }}">{{ form_errors.message or 'Рекомендуем 300–1000 символов. Поле имеет отдельную зону для подсказки, поэтому текст не перекрывает форму.' }}</small>
-            </label>
-
-            <div class="pitching-form-footer">
-                <p><svg><use href="#i-info"></use></svg> После отправки заявку нельзя дублировать для этой же пары «релиз + площадка», пока она активна.</p>
-                <button class="flow-button flow-button-primary pitching-submit" type="submit">Отправить заявку <svg><use href="#i-send"></use></svg></button>
-            </div>
-        </form>
-        {% elif not pitching.eligible_releases %}
-        <div class="pitching-empty-state pitching-empty-state-v2">
-            <span><svg><use href="#i-megaphone"></use></svg></span>
-            <div>
-                <h3>Сейчас нет релиза, который можно отправить</h3>
-                <p>Проверьте причины ниже. Питчинг откроется автоматически, когда релиз будет принят и до даты выхода останется минимум {{ pitching.minimum_days }} дней.</p>
-            </div>
-            <a href="/account/releases">Открыть релизы</a>
-        </div>
-        {% else %}
-        <div class="pitching-empty-state pitching-empty-state-v2">
-            <span><svg><use href="#i-megaphone"></use></svg></span>
-            <div><h3>Площадки пока не настроены</h3><p>После добавления площадок администратором форма станет доступна автоматически.</p></div>
-        </div>
-        {% endif %}
-    </section>
-
-    <aside class="pitching-info-panel pitching-check-panel">
-        <span class="section-kicker">Готовность релизов</span>
-        <h2>Что можно отправить</h2>
-        {% if pitching.releases %}
-        <div class="pitching-readiness-list">
-            {% for release in pitching.releases %}
-            <article class="{{ 'is-ready' if release.eligible else 'is-blocked' }}">
-                <span class="pitching-readiness-icon"><svg><use href="{{ '#i-check' if release.eligible else '#i-clock' }}"></use></svg></span>
-                <div><strong>{{ release.title }}</strong><small>{{ release.release_date_label }} · {{ release.track_count }} тр.</small><p>{{ 'Готов к отправке на питчинг.' if release.eligible else release.eligibility_reason }}</p></div>
-            </article>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="dashboard-empty dashboard-empty-compact"><span class="dashboard-empty-icon"><svg><use href="#i-disc"></use></svg></span><div><h3>Релизов пока нет</h3><p>Создайте первый релиз, чтобы позже отправить его редакторам.</p></div></div>
-        {% endif %}
-        <div class="pitching-warning"><svg><use href="#i-info"></use></svg><p>RAMIX MUSIC передаёт заявку и фиксирует её статус. Финальное редакционное решение принимает выбранная площадка.</p></div>
-    </aside>
-</div>
-
-<section class="pitching-history">
-    <div class="section-heading-row">
-        <div><span class="section-kicker">История и ответы</span><h2>Заявки на питчинг</h2></div>
-        <span class="section-count">{{ pitching.requests | length }}</span>
-    </div>
-    {% if pitching.requests %}
-    <div class="pitching-request-list">
-        {% for item in pitching.requests %}
-        <article class="pitching-request-card pitching-request-card-v2">
-            <div class="pitching-request-platform">
-                {% if item.logo_path %}<img src="{{ item.logo_path }}" alt="{{ item.platform_name }}">{% endif %}
-                <div><strong>{{ item.platform_name }}</strong><code>{{ item.public_id }}</code></div>
-            </div>
-            <div class="pitching-request-release"><span>Релиз</span><strong>{{ item.release_title }}</strong><small>{{ item.artist_name }} · выход {{ item.release_date_label }}</small></div>
-            <div class="pitching-request-date"><span>Последнее обновление</span><strong>{{ item.updated_at_label }}</strong></div>
-            <span class="status-badge status-{{ item.status_meta.class }}">{{ item.status_meta.label }}</span>
-            <details class="pitching-request-details">
-                <summary>Открыть детали <svg><use href="#i-arrow-right"></use></svg></summary>
-                <div><strong>Что вы отправили</strong><p>{{ item.message or 'Описание не добавлялось.' }}</p></div>
-                <div class="is-admin"><strong>Ответ администратора</strong><p>{{ item.admin_comment or 'Ответа пока нет. Следите за статусом заявки.' }}</p></div>
-            </details>
-        </article>
+    {% if pitching_resources %}
+    <div class="pitching-resource-grid">
+        {% for platform in pitching_resources %}
+        <a class="pitching-resource-card" href="{{ platform.support_url }}" target="_blank" rel="noopener noreferrer">
+            <span class="pitching-resource-brand">
+                {% if platform.logo_path %}<img src="{{ platform.logo_path }}" alt="{{ platform.name }}">{% else %}<strong>{{ platform.name }}</strong>{% endif %}
+            </span>
+            <span class="pitching-resource-action">Открыть ресурс <svg><use href="#i-arrow-right"></use></svg></span>
+        </a>
         {% endfor %}
     </div>
     {% else %}
-    <div class="dashboard-empty dashboard-empty-compact">
+    <div class="dashboard-empty">
         <span class="dashboard-empty-icon"><svg><use href="#i-megaphone"></use></svg></span>
-        <div><h3>Заявок пока нет</h3><p>После отправки здесь появятся номер заявки, статус и ответ администратора.</p></div>
+        <div><h3>Ссылки пока не добавлены</h3><p>Администратор опубликует официальные ресурсы площадок позже.</p></div>
     </div>
     {% endif %}
+    <p class="pitching-resource-note">Перед отправкой заявки убедитесь, что релиз уже доставлен на площадку и до даты выхода остаётся достаточно времени.</p>
 </section>
 {% endblock %}

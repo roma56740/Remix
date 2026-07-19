@@ -10,7 +10,6 @@
         <a class="{{ 'is-active' if active_admin == 'news' else '' }}" href="/admin/news"><svg><use href="#a-news"></use></svg><span>Новости сервиса</span></a>
         <a class="{{ 'is-active' if active_admin == 'payouts' else '' }}" href="/admin/payouts"><svg><use href="#a-wallet"></use></svg><span>Выплаты</span>{% if admin_counts.payouts %}<em>{{ admin_counts.payouts }}</em>{% endif %}</a>
         <a class="{{ 'is-active' if active_admin == 'support' else '' }}" href="/admin/support"><svg><use href="#a-message"></use></svg><span>Поддержка</span>{% if admin_counts.support %}<em>{{ admin_counts.support }}</em>{% endif %}</a>
-        <a class="{{ 'is-active' if active_admin == 'pitching' else '' }}" href="/admin/pitching"><svg><use href="#a-megaphone"></use></svg><span>Питчинг</span>{% if admin_counts.pitching %}<em>{{ admin_counts.pitching }}</em>{% endif %}</a>
     </nav>
     <div class="admin-sidebar-footer"><a href="/account"><svg><use href="#a-arrow-left"></use></svg>Личный кабинет</a><form action="/logout" method="post"><button type="submit">Выйти из аккаунта</button></form></div>
 </aside>

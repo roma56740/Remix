@@ -8,13 +8,18 @@
         <div class="admin-large-cover">{% if release.cover_url %}<img src="{{ release.cover_url }}" alt="Обложка {{ release.title }}">{% else %}<span>{{ release.title[:1] }}</span>{% endif %}</div>
         <a class="admin-button" href="/admin/releases/{{ release.id }}/cover"><svg><use href="#a-download"></use></svg>Скачать обложку</a>
         <a class="admin-button" href="/admin/releases/{{ release.id }}/tracks.zip"><svg><use href="#a-download"></use></svg>Скачать треки</a>
-        <a class="admin-button" href="/admin/releases/{{ release.id }}/metadata.json"><svg><use href="#a-file"></use></svg>Скачать метаданные</a>
+        <a class="admin-button" href="/admin/releases/{{ release.id }}/metadata.txt"><svg><use href="#a-file"></use></svg>Скачать метаданные</a>
     </aside>
 
     <div class="admin-release-detail-main">
         <section class="admin-panel">
             <div class="admin-panel-head"><div><span class="admin-kicker">Проверка</span><h2>Данные релиза</h2></div><a href="/admin/users/{{ release.user_id }}">Профиль пользователя <svg><use href="#a-arrow-right"></use></svg></a></div>
             <div class="admin-meta-grid"><div><span>Название</span><strong>{{ release.title }}</strong></div><div><span>Артист</span><strong>{{ release.artist_name }}</strong></div><div><span>Пользователь</span><strong>#{{ release.user_id }} · @{{ release.username }}</strong></div><div><span>Email</span><strong>{{ release.user_email }}</strong></div><div><span>Тип</span><strong>{{ release.release_type_label }}</strong></div><div><span>Жанр</span><strong>{{ release.genre or 'Не указан' }}</strong></div><div><span>Язык метаданных</span><strong>{{ release.metadata_language_label }}</strong></div><div><span>Дата выхода</span><strong>{{ release.release_date_label }}</strong></div><div><span>UPC</span><strong>{{ release.upc or 'Не назначен' }}</strong></div><div><span>Прослушивания</span><strong>{{ release.listens_label }}</strong></div></div>
+            <form class="admin-upc-form" action="/admin/releases/{{ release.id }}/upc" method="post" data-submit-lock>
+                <label><span>UPC релиза</span><input type="text" name="upc" value="{{ release.upc or '' }}" inputmode="numeric" pattern="[0-9]{8,18}" maxlength="18" placeholder="Например: 004879552017"></label>
+                <button class="admin-button admin-button-primary" type="submit"><svg><use href="#a-check"></use></svg>Сохранить UPC</button>
+                <small>После сохранения код появится у пользователя в «Моих релизах» и будет отправлен в подключённый Telegram.</small>
+            </form>
         </section>
 
         <section class="admin-panel moderation-decision-panel">

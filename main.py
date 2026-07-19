@@ -48,6 +48,7 @@ from database import (
     list_admin_pitching_requests,
     list_admin_support_tickets,
     list_release_rule_sections,
+    list_pitching_resources,
     list_release_tracks,
     list_support_faqs,
     list_user_releases,
@@ -97,6 +98,7 @@ from platform_service import (
     process_payout_request,
     save_service_news,
     set_release_listens,
+    set_release_upc,
     set_track_listens,
     set_user_blocked,
     update_admin_pitching_request,
@@ -120,6 +122,7 @@ from telegram_repository import (
     queue_pitching_status,
     queue_release_message,
     queue_release_status,
+    queue_release_upc,
     queue_support_reply,
     queue_support_status,
 )
@@ -180,11 +183,14 @@ def account_context(
     active_section: str,
     **extra: Any,
 ) -> dict[str, Any]:
+    bot_username = telegram_runtime.bot_username or BOT_USERNAME
     return template_context(
         request,
         dashboard=get_dashboard_data(int(user["id"])),
         notifications_unread=get_unread_notification_count(int(user["id"])),
         active_section=active_section,
+        telegram_bot_username=bot_username,
+        telegram_bot_url=(f"https://t.me/{bot_username}" if bot_username else None),
         **extra,
     )
 
@@ -226,12 +232,6 @@ def settings_context(
         profile_error=profile_error,
         password_error=password_error,
         notice=notice,
-        telegram_bot_username=telegram_runtime.bot_username or BOT_USERNAME,
-        telegram_bot_url=(
-            f"https://t.me/{telegram_runtime.bot_username or BOT_USERNAME}"
-            if (telegram_runtime.bot_username or BOT_USERNAME)
-            else None
-        ),
     )
 
 
@@ -1391,25 +1391,14 @@ async def release_track_audio(request: Request, release_id: int, track_id: int) 
 
 
 @app.get("/account/support", response_class=HTMLResponse)
-async def support_page(
-    request: Request,
-    ticket: int | None = Query(default=None),
-    support_status: str = Query(default="all", alias="status"),
-) -> Response:
+async def support_page(request: Request) -> Response:
     user = _require_user(request)
     if isinstance(user, RedirectResponse):
         return user
     return templates.TemplateResponse(
         request=request,
         name="support.html",
-        context=support_page_context(
-            request,
-            user,
-            status_filter=support_status,
-            ticket_id=ticket,
-            notice=request.session.pop("support_notice", None),
-            error=request.session.pop("support_error", None),
-        ),
+        context=account_context(request, user, active_section="support"),
     )
 
 
@@ -1514,81 +1503,21 @@ async def pitching_page(request: Request) -> Response:
     return templates.TemplateResponse(
         request=request,
         name="pitching.html",
-        context=pitching_page_context(
+        context=account_context(
             request,
             user,
-            notice=request.session.pop("pitching_notice", None),
-            error=request.session.pop("pitching_error", None),
+            active_section="pitching",
+            pitching_resources=list_pitching_resources(),
         ),
     )
 
 
 @app.post("/account/pitching", response_class=HTMLResponse)
-async def pitching_request_create(
-    request: Request,
-    release_id: str = Form(default=""),
-    platform_id: str = Form(default=""),
-    message: str = Form(default=""),
-) -> Response:
+async def pitching_request_create(request: Request) -> Response:
     user = _require_user(request)
     if isinstance(user, RedirectResponse):
         return user
-    values = {
-        "release_id": release_id.strip(),
-        "platform_id": platform_id.strip(),
-        "message": _clean_multiline(message, 2200),
-    }
-    errors: dict[str, str] = {}
-    try:
-        release_value = int(values["release_id"])
-        if release_value <= 0:
-            raise ValueError
-    except ValueError:
-        release_value = 0
-        errors["release_id"] = "Выберите релиз."
-    try:
-        platform_value = int(values["platform_id"])
-        if platform_value <= 0:
-            raise ValueError
-    except ValueError:
-        platform_value = 0
-        errors["platform_id"] = "Выберите площадку."
-    if len(values["message"]) > 2000:
-        errors["message"] = "Описание должно быть не длиннее 2000 символов."
-    if errors:
-        return templates.TemplateResponse(
-            request=request,
-            name="pitching.html",
-            context=pitching_page_context(
-                request,
-                user,
-                form_values=values,
-                form_errors=errors,
-                error="Выберите релиз и площадку.",
-            ),
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        )
-    ok, result_message = create_pitching_request(
-        int(user["id"]),
-        release_id=release_value,
-        platform_id=platform_value,
-        message=values["message"],
-    )
-    if ok:
-        queue_latest_pitching_request(int(user["id"]), release_value, platform_value)
-        request.session["pitching_notice"] = result_message
-        return RedirectResponse(url="/account/pitching", status_code=status.HTTP_303_SEE_OTHER)
-    return templates.TemplateResponse(
-        request=request,
-        name="pitching.html",
-        context=pitching_page_context(
-            request,
-            user,
-            form_values=values,
-            error=result_message,
-        ),
-        status_code=status.HTTP_409_CONFLICT,
-    )
+    return RedirectResponse(url="/account/pitching", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.get("/account/rules", response_class=HTMLResponse)
@@ -1814,6 +1743,23 @@ async def admin_release_moderate(
     return RedirectResponse(url=f"/admin/releases/{release_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 
+@app.post("/admin/releases/{release_id}/upc")
+async def admin_release_upc(
+    request: Request,
+    release_id: int,
+    upc: str = Form(default=""),
+) -> Response:
+    user = _require_admin(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    clean_upc = "".join(ch for ch in upc if ch.isdigit())
+    ok, message = set_release_upc(int(user["id"]), release_id, clean_upc)
+    if ok:
+        queue_release_upc(release_id, clean_upc)
+    request.session["admin_release_notice" if ok else "admin_release_error"] = message
+    return RedirectResponse(url=f"/admin/releases/{release_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
 @app.post("/admin/releases/{release_id}/listens")
 async def admin_release_listens(
     request: Request,
@@ -1904,6 +1850,11 @@ async def admin_release_tracks_archive(request: Request, release_id: int) -> Res
 
 
 @app.get("/admin/releases/{release_id}/metadata.json")
+async def admin_release_metadata_legacy(request: Request, release_id: int) -> Response:
+    return RedirectResponse(url=f"/admin/releases/{release_id}/metadata.txt", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/admin/releases/{release_id}/metadata.txt")
 async def admin_release_metadata(request: Request, release_id: int) -> Response:
     user = _require_admin(request)
     if isinstance(user, RedirectResponse):
@@ -1911,37 +1862,60 @@ async def admin_release_metadata(request: Request, release_id: int) -> Response:
     release = get_admin_release(release_id)
     if not release:
         raise HTTPException(status_code=404, detail="Release not found")
-    metadata = {
-        "release": {
-            key: release.get(key)
-            for key in (
-                "id", "user_id", "title", "artist_name", "release_type", "release_version",
-                "genre", "metadata_language", "is_explicit", "status", "upc", "release_date",
-                "submitted_at", "moderated_at", "moderator_comment", "rejection_reason",
-            )
-        },
-        "user": {
-            "name": release.get("user_name"),
-            "email": release.get("user_email"),
-            "username": release.get("username"),
-        },
-        "tracks": [
-            {
-                key: track.get(key)
-                for key in (
-                    "id", "position", "title", "artists", "version", "language", "lyricist",
-                    "composer", "is_explicit", "isrc", "audio_filename", "tiktok_start_seconds",
-                    "tiktok_end_seconds",
-                )
-            }
-            for track in release["tracks"]
-        ],
-    }
-    payload = json.dumps(metadata, ensure_ascii=False, indent=2).encode("utf-8")
+
+    lines = [
+        "RAMIX MUSIC — ДАННЫЕ РЕЛИЗА",
+        "=" * 54,
+        f"ID релиза: {release.get('id')}",
+        f"Название: {release.get('title') or '—'}",
+        f"Артист: {release.get('artist_name') or '—'}",
+        f"Тип релиза: {release.get('release_type_label') or release.get('release_type') or '—'}",
+        f"Версия: {release.get('release_version') or 'Оригинальная версия'}",
+        f"Жанр: {release.get('genre') or '—'}",
+        f"Язык метаданных: {release.get('metadata_language_label') or release.get('metadata_language') or '—'}",
+        f"Дата выхода: {release.get('release_date_label') or release.get('release_date') or '—'}",
+        f"Explicit: {'Да' if release.get('is_explicit') else 'Нет'}",
+        f"UPC: {release.get('upc') or 'Не назначен'}",
+        f"Статус: {release.get('status_meta', {}).get('label', release.get('status') or '—')}",
+        "",
+        "ПОЛЬЗОВАТЕЛЬ",
+        "-" * 54,
+        f"ID пользователя: {release.get('user_id')}",
+        f"Имя: {release.get('user_name') or '—'}",
+        f"Логин: @{release.get('username') or '—'}",
+        f"Email: {release.get('user_email') or '—'}",
+        "",
+        "ТРЕКИ",
+        "-" * 54,
+    ]
+    for index, track in enumerate(release.get("tracks") or [], start=1):
+        lines.extend([
+            f"{index}. {track.get('title') or 'Без названия'}",
+            f"   Артисты: {track.get('artists') or '—'}",
+            f"   Версия: {track.get('version') or 'Оригинальная'}",
+            f"   Язык: {track.get('language_label') or track.get('language') or '—'}",
+            f"   Автор слов: {track.get('lyricist') or '—'}",
+            f"   Автор музыки: {track.get('composer') or '—'}",
+            f"   Explicit: {'Да' if track.get('is_explicit') else 'Нет'}",
+            f"   ISRC: {track.get('isrc') or 'Не назначен'}",
+            f"   Аудиофайл: {track.get('audio_filename') or '—'}",
+            f"   Отрывок: {track.get('tiktok_start_label') or '00:00'}–{track.get('tiktok_end_label') or '—'}",
+            "",
+        ])
+    if not release.get("tracks"):
+        lines.append("Треки не добавлены.")
+    lines.extend([
+        "",
+        "КОММЕНТАРИИ",
+        "-" * 54,
+        f"Комментарий пользователя: {release.get('moderator_comment') or '—'}",
+        f"Причина отклонения / правок: {release.get('rejection_reason') or '—'}",
+    ])
+    payload = "\ufeff" + "\n".join(str(line) for line in lines)
     return Response(
-        content=payload,
-        media_type="application/json; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="release-{release_id}-metadata.json"'},
+        content=payload.encode("utf-8"),
+        media_type="text/plain; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="release-{release_id}-metadata.txt"'},
     )
 
 
@@ -2303,25 +2277,11 @@ async def admin_support_status(
 
 
 @app.get("/admin/pitching", response_class=HTMLResponse)
-async def admin_pitching_page(
-    request: Request,
-    request_status: str = Query(default="all", alias="status"),
-) -> Response:
+async def admin_pitching_page(request: Request) -> Response:
     user = _require_admin(request)
     if isinstance(user, RedirectResponse):
         return user
-    return templates.TemplateResponse(
-        request=request,
-        name="admin_pitching.html",
-        context=admin_context(
-            request,
-            user,
-            active_admin="pitching",
-            pitching=list_admin_pitching_v2(request_status),
-            notice=request.session.pop("admin_pitching_notice", None),
-            error=request.session.pop("admin_pitching_error", None),
-        ),
-    )
+    return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.get("/admin/pitching/{pitching_request_id}", response_class=HTMLResponse)
@@ -2329,43 +2289,15 @@ async def admin_pitching_detail(request: Request, pitching_request_id: int) -> R
     user = _require_admin(request)
     if isinstance(user, RedirectResponse):
         return user
-    item = get_admin_pitching_request(pitching_request_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Pitching request not found")
-    return templates.TemplateResponse(
-        request=request,
-        name="admin_pitching_detail.html",
-        context=admin_context(
-            request,
-            user,
-            active_admin="pitching",
-            item=item,
-            notice=request.session.pop("admin_pitching_notice", None),
-            error=request.session.pop("admin_pitching_error", None),
-        ),
-    )
+    return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.post("/admin/pitching/{pitching_request_id}")
-async def admin_pitching_update(
-    request: Request,
-    pitching_request_id: int,
-    status_value: str = Form(default="in_review"),
-    admin_comment: str = Form(default=""),
-) -> Response:
+async def admin_pitching_update(request: Request, pitching_request_id: int) -> Response:
     user = _require_admin(request)
     if isinstance(user, RedirectResponse):
         return user
-    clean_comment = _clean_multiline(admin_comment, 2200)
-    ok, message = update_admin_pitching_request(
-        int(user["id"]), pitching_request_id,
-        status_value=status_value,
-        admin_comment=clean_comment,
-    )
-    if ok:
-        queue_pitching_status(pitching_request_id, status_value, clean_comment)
-    request.session["admin_pitching_notice" if ok else "admin_pitching_error"] = message
-    return RedirectResponse(url=f"/admin/pitching/{pitching_request_id}", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.get("/account/{section:path}", response_class=HTMLResponse)

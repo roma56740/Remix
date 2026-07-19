@@ -1399,6 +1399,22 @@ def _pitching_request_dict(row: sqlite3.Row) -> dict[str, Any]:
     return item
 
 
+
+def list_pitching_resources() -> list[dict[str, Any]]:
+    """Return active external artist resources shown in the user cabinet."""
+    with _connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT id, name, slug, logo_path, support_url, description
+            FROM pitching_platforms
+            WHERE is_active = 1
+              AND support_url IS NOT NULL
+              AND trim(support_url) NOT IN ('', '#')
+            ORDER BY sort_order ASC, name ASC
+            """
+        ).fetchall()
+    return [dict(row) for row in rows]
+
 def get_pitching_page_data(user_id: int) -> dict[str, Any]:
     minimum_date = date.today() + timedelta(days=PITCHING_MIN_DAYS)
     with _connect() as connection:

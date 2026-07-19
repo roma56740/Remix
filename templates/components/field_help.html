@@ -1,0 +1,13 @@
+{% macro help(text) -%}
+<button class="field-help" type="button" aria-label="Показать подсказку" aria-expanded="false" data-field-help>
+    <span class="field-help-mark">?</span>
+    <span class="field-help-tooltip" role="tooltip">{{ text }}</span>
+</button>
+{%- endmacro %}
+
+{% macro label(text, help_text, required=false) -%}
+<span class="flow-label flow-label-with-help">
+    <span>{{ text }}{% if required %}<b class="required-mark" aria-label="Обязательное поле">*</b>{% endif %}</span>
+    {{ help(help_text) }}
+</span>
+{%- endmacro %}
