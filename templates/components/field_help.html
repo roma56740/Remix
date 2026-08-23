@@ -1,13 +1,13 @@
-{% macro help(text) -%}
-<button class="field-help" type="button" aria-label="Показать подсказку" aria-expanded="false" data-field-help>
-    <span class="field-help-mark">?</span>
+{% macro help(text, mark='?') -%}
+<button class="field-help {{ 'field-help-text' if mark != '?' else '' }}" type="button" aria-label="Показать {{ mark | lower }}" aria-expanded="false" data-field-help>
+    <span class="field-help-mark">{{ mark }}</span>
     <span class="field-help-tooltip" role="tooltip">{{ text }}</span>
 </button>
 {%- endmacro %}
 
-{% macro label(text, help_text, required=false) -%}
+{% macro label(text, help_text, required=false, help_mark='?') -%}
 <span class="flow-label flow-label-with-help">
     <span>{{ text }}{% if required %}<b class="required-mark" aria-label="Обязательное поле">*</b>{% endif %}</span>
-    {{ help(help_text) }}
+    {{ help(help_text, help_mark) }}
 </span>
 {%- endmacro %}

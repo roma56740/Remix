@@ -4,6 +4,33 @@
 {% block title %}Треки релиза — RAMIX MUSIC{% endblock %}
 
 {% block account_content %}
+{% set lyrics_requirements -%}
+Строки в куплете или припеве должны быть через один интервал.
+Исключите невидимый текст, например заголовки разделов или имя вокалиста.
+Начинайте каждую строку с заглавной буквы.
+Имена собственные — с заглавной буквы.
+Последний символ строки: буква, цифра, ?, !, -, ", ), *.
+Первый символ строки: буква, цифра, -, ", (, *.
+Пишите числа словами.
+Календарные годы записываются цифрами.
+{%- endset %}
+{% set audio_requirements -%}
+Формат файла: .wav или .flac
+
+Стандартный формат аудиофайла — WAV 16 бит, 44 100 Гц, stereo.
+
+Разрешено: 24-бит / 44 100 Гц (24/44); 24-бит / 48 000 Гц (24/48); 24-бит / 88 200 Гц (24/88); 24-бит / 96 000 Гц (24/96); 24-бит / 192 000 Гц (24/192).
+
+Запрещено: 32-бит.
+{%- endset %}
+{% set snippet_help -%}
+С выбранной секунды начнётся воспроизведение фрагмента:
+— который будет использован на сервисе VK Клипы;
+— который будет использован как сниппет в VK Музыке;
+— который будет проигрываться до покупки в iTunes;
+— который будет использован как сниппет в Apple Music;
+— который будет использован как официальный звук в TikTok и Likee.
+{%- endset %}
 <section class="release-page-head">
     <div>
         <h1>Создание релиза</h1>
@@ -105,13 +132,13 @@
             <div class="track-form-grid">
                 <div class="track-form-column">
                     <label class="flow-field {{ 'has-error' if track_errors.title else '' }}">
-                        {{ label('Название трека', 'Укажите только официальное название композиции. Не добавляйте имя артиста, номер трека или тип версии, если это не часть названия.', true) }}
+                        {{ label('Название трека', 'Наименования на языках, использующих кириллицу, не должны быть представлены на транслите, если вы планируете отгрузку в Apple Music.', true) }}
                         <input type="text" name="title" value="{{ track_form.title }}" maxlength="160" placeholder="Например: Midnight Signal" required>
                         <small class="field-message {{ 'is-error' if track_errors.title else '' }}">{{ track_errors.title or 'Укажите только название композиции.' }}</small>
                     </label>
 
                     <label class="flow-field {{ 'has-error' if track_errors.artists else '' }}">
-                        {{ label('Исполнитель или артисты', 'Укажите артистов в точном порядке и написании, в котором они должны отображаться на площадках. Для приглашённого артиста используйте feat.', true) }}
+                        {{ label('Исполнитель или артисты', 'Введите имя артиста. Если их несколько, перечислите их через запятую или через feat. (Пример: Artist1, Artist2 или Artist1 feat. Artist2).', true) }}
                         <input type="text" name="artists" value="{{ track_form.artists }}" maxlength="200" placeholder="Music1, Music2 или Music1 feat. Music2" required>
                         <small class="field-message {{ 'is-error' if track_errors.artists else '' }}">{{ track_errors.artists or 'Напишите имена в том виде, как они должны быть на площадках.' }}</small>
                     </label>
@@ -123,7 +150,7 @@
                     </label>
 
                     <label class="flow-field {{ 'has-error' if track_errors.language else '' }}">
-                        {{ label('Язык исполнения', 'Выберите язык вокала. Для трека без слов выберите «Инструментал». Если языков несколько, укажите основной.', true) }}
+                        {{ label('Язык исполнения', 'Язык, на котором исполняется трек. Укажите «Инструментал» при отсутствии слов.', true) }}
                         <select name="language" required>
                             <option value="ru" {{ 'selected' if track_form.language == 'ru' else '' }}>Русский</option>
                             <option value="en" {{ 'selected' if track_form.language == 'en' else '' }}>Английский</option>
@@ -134,27 +161,27 @@
                     </label>
 
                     <label class="flow-field {{ 'has-error' if track_errors.lyricist else '' }}">
-                        {{ label('Автор слов — ФИО', 'Укажите настоящее полное имя автора текста. Псевдоним можно использовать только если он официально зарегистрирован для авторских прав.', true) }}
-                        <input type="text" name="lyricist" value="{{ track_form.lyricist }}" maxlength="200" placeholder="Иванов Иван Иванович" required>
+                        {{ label('Автор слов — ФИО', 'Пожалуйста, указывайте полные имена авторов и авторов инструментала в строго указанном порядке: Имя Отчество Фамилия (например, Иван Иванович Иванов) или Имя Фамилия (например, Иван Иванов). Использование никнеймов, псевдонимов или иных форматов не допускается и будет отклонено. Порядок имени, отчества и фамилии должен быть строго соблюдён.', true) }}
+                        <input type="text" name="lyricist" value="{{ track_form.lyricist }}" maxlength="200" placeholder="Иван Иванович Иванов" required>
                         <small class="field-message {{ 'is-error' if track_errors.lyricist else '' }}">{{ track_errors.lyricist or 'Для инструментала укажите автора произведения.' }}</small>
                     </label>
 
                     <label class="flow-field {{ 'has-error' if track_errors.composer else '' }}">
-                        {{ label('Автор музыки — ФИО', 'Укажите настоящее полное имя композитора или всех композиторов через запятую.', true) }}
-                        <input type="text" name="composer" value="{{ track_form.composer }}" maxlength="200" placeholder="Иванов Иван Иванович" required>
+                        {{ label('Автор музыки — ФИО', 'Пожалуйста, указывайте полные имена авторов и авторов инструментала в строго указанном порядке: Имя Отчество Фамилия (например, Иван Иванович Иванов) или Имя Фамилия (например, Иван Иванов). Использование никнеймов, псевдонимов или иных форматов не допускается и будет отклонено. Порядок имени, отчества и фамилии должен быть строго соблюдён.', true) }}
+                        <input type="text" name="composer" value="{{ track_form.composer }}" maxlength="200" placeholder="Иван Иванович Иванов" required>
                         <small class="field-message {{ 'is-error' if track_errors.composer else '' }}">{{ track_errors.composer or 'Укажите настоящее имя автора музыки.' }}</small>
                     </label>
                 </div>
 
                 <div class="track-form-column">
                     <label class="flow-field flow-field-textarea {{ 'has-error' if track_errors.lyrics else '' }}">
-                        {{ label('Текст песни', 'Добавьте полный текст с корректными переносами строк. Для инструментального трека оставьте поле пустым.') }}
+                        {{ label('Текст песни', lyrics_requirements, false, 'Требования') }}
                         <textarea name="lyrics" maxlength="20000" placeholder="Добавьте текст песни или оставьте поле пустым для инструментала">{{ track_form.lyrics }}</textarea>
                         <small class="field-message {{ 'is-error' if track_errors.lyrics else '' }}">{{ track_errors.lyrics or 'Сохраняйте структуру куплетов и припевов переносами строк.' }}</small>
                     </label>
 
                     <label class="flow-field audio-field {{ 'has-error' if track_errors.audio else '' }}">
-                        {{ label('Аудиофайл', 'Загрузите финальный мастер в WAV или FLAC. Файл должен соответствовать треку, не содержать лишней тишины, обрывов или технических меток.', not editing_track) }}
+                        {{ label('Аудиофайл', audio_requirements, not editing_track, 'Требования') }}
                         <span class="audio-upload-control">
                             <span class="audio-upload-copy">
                                 <svg><use href="#i-music"></use></svg>
@@ -170,7 +197,7 @@
                     </label>
 
                     <div class="flow-field timecode-field {{ 'has-error' if track_errors.tiktok_start or track_errors.tiktok_end else '' }}">
-                        {{ label('Отрывок для коротких видео', 'Выберите наиболее узнаваемый фрагмент. Начало и конец указываются в формате ММ:СС; продолжительность должна быть не больше трёх минут.') }}
+                        {{ label('Отрывок для коротких видео', snippet_help) }}
                         <div class="timecode-grid">
                             <label><span>Начало</span><input type="text" name="tiktok_start" value="{{ track_form.tiktok_start }}" inputmode="numeric" placeholder="00:00"></label>
                             <label><span>Конец</span><input type="text" name="tiktok_end" value="{{ track_form.tiktok_end }}" inputmode="numeric" placeholder="01:00"></label>

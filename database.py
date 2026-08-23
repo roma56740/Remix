@@ -578,6 +578,7 @@ def update_release_details(
     release_id: int,
     *,
     title: str,
+    artist_name: str,
     release_type: str,
     release_version: str,
     genre: str,
@@ -599,7 +600,7 @@ def update_release_details(
             connection.execute(
                 """
                 UPDATE releases
-                SET title = ?, release_type = ?, release_version = ?, genre = ?,
+                SET title = ?, artist_name = ?, release_type = ?, release_version = ?, genre = ?,
                     metadata_language = ?, release_date = ?, is_explicit = ?, status = 'draft',
                     rejection_reason = NULL, cover_path = ?, cover_filename = ?,
                     cover_size = ?, cover_width = ?, cover_height = ?, updated_at = ?
@@ -607,6 +608,7 @@ def update_release_details(
                 """,
                 (
                     title,
+                    artist_name,
                     release_type,
                     release_version or None,
                     genre,
@@ -627,13 +629,14 @@ def update_release_details(
             connection.execute(
                 """
                 UPDATE releases
-                SET title = ?, release_type = ?, release_version = ?, genre = ?,
+                SET title = ?, artist_name = ?, release_type = ?, release_version = ?, genre = ?,
                     metadata_language = ?, release_date = ?, is_explicit = ?, status = 'draft',
                     rejection_reason = NULL, updated_at = ?
                 WHERE id = ? AND user_id = ?
                 """,
                 (
                     title,
+                    artist_name,
                     release_type,
                     release_version or None,
                     genre,

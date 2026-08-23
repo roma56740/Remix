@@ -768,6 +768,71 @@ def migration_016_static_pitching_resources(connection: sqlite3.Connection) -> N
         )
 
 
+def migration_017_pitching_links(connection: sqlite3.Connection) -> None:
+    """Install the supplied pitching links and hide removed platforms."""
+    resources = (
+        ("МТС Музыка", "mts-music", "/static/img/mts-music.png", "https://music.mts.ru/pitch", 10),
+        ("Яндекс Музыка", "yandex-music", "/static/img/yandex-music.png", "https://teletype.in/@ramixmusic/yandexmusic", 20),
+        ("VK Музыка", "vk-music", "/static/img/vk-music.png", "https://vk.ru/app5619682_-147845620#724562", 30),
+        ("Spotify", "spotify", "/static/img/spotify.svg", "https://teletype.in/@ramixmusic/spotify", 40),
+        ("TikTok", "tiktok", "/static/img/tiktok.png", "https://teletype.in/@ramixmusic/tiktok", 50),
+        ("Звук", "zvuk", "/static/img/zvuk.png", "https://teletype.in/@ramixmusic/zvuk", 60),
+    )
+    for name, slug, logo_path, support_url, sort_order in resources:
+        connection.execute(
+            """
+            INSERT INTO pitching_platforms (name, slug, logo_path, support_url, is_active, sort_order)
+            VALUES (?, ?, ?, ?, 1, ?)
+            ON CONFLICT(slug) DO UPDATE SET
+                name = excluded.name,
+                logo_path = excluded.logo_path,
+                support_url = excluded.support_url,
+                is_active = 1,
+                sort_order = excluded.sort_order
+            """,
+            (name, slug, logo_path, support_url, sort_order),
+        )
+    connection.execute(
+        "UPDATE pitching_platforms SET is_active = 0 WHERE slug IN ('tidal', 'deezer')"
+    )
+
+
+def migration_018_release_rule_requirements(connection: sqlite3.Connection) -> None:
+    """Keep the standalone release rules consistent with the upload form."""
+    now = datetime.now(timezone.utc).isoformat()
+    connection.execute(
+        """
+        UPDATE release_rule_sections
+        SET items_text = ?, note = ?, updated_at = ?
+        WHERE step_number = 2
+        """,
+        (
+            "Используйте квадратное изображение JPG или PNG.\n"
+            "Размер — от 1400×1400 до 6000×6000 px, разрешение — не менее 72 dpi.\n"
+            "Максимальный размер файла — 20 МБ.\n"
+            "Не размещайте контакты, ссылки, даты, цены, штрих-коды и логотипы сторонних сервисов.\n"
+            "Используйте только оригинальное изображение, на которое у вас есть права.",
+            "Изображение должно быть чётким, без белой рамки, размытия и пикселизации.",
+            now,
+        ),
+    )
+    connection.execute(
+        """
+        UPDATE release_rule_sections
+        SET items_text = ?, note = ?, updated_at = ?
+        WHERE step_number = 5
+        """,
+        (
+            "Укажите планируемую дату релиза.\n"
+            "Минимальный срок доставки релиза на площадки — 3 дня.\n"
+            "Рекомендуем загружать релиз как минимум за 10 дней до выхода.\n"
+            "Перед отправкой проверьте финальный экран со всеми данными.",
+            "Площадки модерируют релиз независимо, поэтому он может появиться на них не одновременно.",
+            now,
+        ),
+    )
+
+
 MIGRATIONS: tuple[Migration, ...] = (
     (1, "users", migration_001_users),
     (2, "user profile fields", migration_002_user_profile_fields),
@@ -785,6 +850,8 @@ MIGRATIONS: tuple[Migration, ...] = (
     (14, "bootstrap first administrator", migration_014_bootstrap_first_admin),
     (15, "telegram integration and notification outbox", migration_015_telegram_integration),
     (16, "static pitching resources", migration_016_static_pitching_resources),
+    (17, "supplied pitching links", migration_017_pitching_links),
+    (18, "release rule requirements", migration_018_release_rule_requirements),
 )
 
 

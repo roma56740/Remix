@@ -41,7 +41,6 @@
             <div><dt>Основной жанр</dt><dd>{{ release.genre or 'Не указан' }}</dd></div>
             <div><dt>Язык метаданных</dt><dd>{{ release.metadata_language_label }}</dd></div>
             <div><dt>Дата выхода</dt><dd>{{ release.release_date_label }}</dd></div>
-            <div><dt>Explicit</dt><dd>{{ 'Да' if release.is_explicit else 'Нет' }}</dd></div>
         </dl>
     </div>
 
@@ -53,10 +52,10 @@
             <small class="field-message">Необязательное поле, до 2000 символов.</small>
         </label>
 
-        <label class="flow-check release-soon-check">
+        <label class="flow-check release-soon-check release-soon-panel">
             <input type="checkbox" name="release_soon" {{ 'checked' if release.release_soon else '' }}>
             <span class="flow-check-box"><svg><use href="#i-check"></use></svg></span>
-            <span><strong>Сохранить выбранную дату выхода {{ help('Отметьте, если релиз нужно отправлять на площадки с сохранением указанной даты. Фактическое время появления может отличаться у разных сервисов.') }}</strong><small>После принятия релиза мы подготовим отправку на площадки к указанной дате.</small></span>
+            <span><strong>Выпустить в ближайшее время</strong><small>Релиз появится на площадках, как только пройдёт модерацию. Обратите внимание: релиз проходит модерацию на каждой площадке индивидуально, поэтому он не появится на всех площадках одновременно.</small></span>
         </label>
     </form>
     {% else %}

@@ -153,6 +153,15 @@ app.add_middleware(
 )
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
+LEGAL_DIR = BASE_DIR / "legal"
+
+
+def _legal_text(filename: str, heading: str) -> str:
+    text = (LEGAL_DIR / filename).read_text(encoding="utf-8-sig").strip()
+    lines = text.splitlines()
+    if lines and lines[0].strip().casefold() == heading.casefold():
+        return "\n".join(lines[1:]).lstrip()
+    return text
 
 
 def current_user(request: Request) -> dict[str, Any] | None:
@@ -324,6 +333,7 @@ def _clean_multiline(value: str, max_length: int) -> str:
 def _release_form_values(
     *,
     title: str = "",
+    artist_name: str = "",
     release_type: str = "single",
     release_version: str = "",
     genre: str = "",
@@ -333,6 +343,7 @@ def _release_form_values(
 ) -> dict[str, Any]:
     return {
         "title": title,
+        "artist_name": artist_name,
         "release_type": release_type,
         "release_version": release_version,
         "genre": genre,
@@ -348,6 +359,10 @@ def _validate_release_form(form: dict[str, Any]) -> dict[str, str]:
         errors["title"] = "Введите название релиза."
     elif len(form["title"]) > 160:
         errors["title"] = "Название должно быть не длиннее 160 символов."
+    if len(form["artist_name"]) < 1:
+        errors["artist_name"] = "Введите имя артиста или артистов."
+    elif len(form["artist_name"]) > 200:
+        errors["artist_name"] = "Имена артистов должны быть не длиннее 200 символов."
     if form["release_type"] not in RELEASE_TYPES:
         errors["release_type"] = "Выберите тип релиза."
     if len(form["release_version"]) > 80:
@@ -361,8 +376,9 @@ def _validate_release_form(form: dict[str, Any]) -> dict[str, str]:
     release_date_value = str(form.get("release_date") or "")
     try:
         parsed_release_date = datetime.strptime(release_date_value, "%Y-%m-%d").date()
-        if parsed_release_date <= date.today():
-            errors["release_date"] = "Дата выхода должна быть позже сегодняшнего дня."
+        minimum_release_date = date.today() + timedelta(days=3)
+        if parsed_release_date < minimum_release_date:
+            errors["release_date"] = "До даты выхода должно оставаться не менее 3 дней."
     except ValueError:
         errors["release_date"] = "Выберите планируемую дату выхода."
     return errors
@@ -449,9 +465,9 @@ def _release_form_context(
         form=form,
         errors=errors or {},
         release=release,
-        minimum_release_date=(date.today() + timedelta(days=1)).isoformat(),
-        pitching_recommended_date=(date.today() + timedelta(days=12)).isoformat(),
-        pitching_recommended_date_label=(date.today() + timedelta(days=12)).strftime("%d.%m.%Y"),
+        minimum_release_date=(date.today() + timedelta(days=3)).isoformat(),
+        pitching_recommended_date=(date.today() + timedelta(days=10)).isoformat(),
+        pitching_recommended_date_label=(date.today() + timedelta(days=10)).strftime("%d.%m.%Y"),
         step=1,
     )
 
@@ -526,7 +542,7 @@ async def register(
     elif password != password_confirm:
         error = "Пароли не совпадают."
     elif accept_policy != "on":
-        error = "Подтвердите согласие с политикой конфиденциальности."
+        error = "Подтвердите согласие с публичной офертой и политикой конфиденциальности."
     elif get_user_by_email(clean_email):
         error = "Аккаунт с таким email уже существует."
 
@@ -792,7 +808,7 @@ async def release_create_page(request: Request) -> Response:
         context=_release_form_context(
             request,
             user,
-            form=_release_form_values(),
+            form=_release_form_values(artist_name=str(user["name"])),
         ),
     )
 
@@ -801,12 +817,12 @@ async def release_create_page(request: Request) -> Response:
 async def release_create(
     request: Request,
     title: str = Form(default=""),
+    artist_name: str = Form(default=""),
     release_type: str = Form(default="single"),
     release_version: str = Form(default=""),
     genre: str = Form(default=""),
     metadata_language: str = Form(default="ru"),
     release_date: str = Form(default=""),
-    is_explicit: str | None = Form(default=None),
     cover: UploadFile | None = File(default=None),
 ) -> Response:
     user = _require_user(request)
@@ -815,12 +831,13 @@ async def release_create(
 
     form = _release_form_values(
         title=_clean_line(title, 200),
+        artist_name=_clean_line(artist_name, 240),
         release_type=release_type.strip().lower(),
         release_version=_clean_line(release_version, 100),
         genre=_clean_line(genre, 100),
         metadata_language=metadata_language.strip().lower(),
         release_date=release_date.strip(),
-        is_explicit=is_explicit == "on",
+        is_explicit=False,
     )
     errors = _validate_release_form(form)
     if not cover or not cover.filename:
@@ -853,7 +870,7 @@ async def release_create(
         release = create_release(
             int(user["id"]),
             title=form["title"],
-            artist_name=str(user["name"]),
+            artist_name=form["artist_name"],
             release_type=form["release_type"],
             release_version=form["release_version"],
             genre=form["genre"],
@@ -894,6 +911,7 @@ async def release_edit_page(request: Request, release_id: int) -> Response:
         )
     form = _release_form_values(
         title=str(release["title"]),
+        artist_name=str(release.get("artist_name") or user["name"]),
         release_type=str(release["release_type"]),
         release_version=str(release.get("release_version") or ""),
         genre=str(release.get("genre") or ""),
@@ -913,12 +931,12 @@ async def release_edit(
     request: Request,
     release_id: int,
     title: str = Form(default=""),
+    artist_name: str = Form(default=""),
     release_type: str = Form(default="single"),
     release_version: str = Form(default=""),
     genre: str = Form(default=""),
     metadata_language: str = Form(default="ru"),
     release_date: str = Form(default=""),
-    is_explicit: str | None = Form(default=None),
     cover: UploadFile | None = File(default=None),
 ) -> Response:
     user = _require_user(request)
@@ -930,12 +948,13 @@ async def release_edit(
 
     form = _release_form_values(
         title=_clean_line(title, 200),
+        artist_name=_clean_line(artist_name, 240),
         release_type=release_type.strip().lower(),
         release_version=_clean_line(release_version, 100),
         genre=_clean_line(genre, 100),
         metadata_language=metadata_language.strip().lower(),
         release_date=release_date.strip(),
-        is_explicit=is_explicit == "on",
+        is_explicit=bool(release.get("is_explicit")),
     )
     errors = _validate_release_form(form)
     if not release.get("cover_path") and (not cover or not cover.filename):
@@ -982,6 +1001,7 @@ async def release_edit(
         int(user["id"]),
         release_id,
         title=form["title"],
+        artist_name=form["artist_name"],
         release_type=form["release_type"],
         release_version=form["release_version"],
         genre=form["genre"],
@@ -1874,7 +1894,6 @@ async def admin_release_metadata(request: Request, release_id: int) -> Response:
         f"Жанр: {release.get('genre') or '—'}",
         f"Язык метаданных: {release.get('metadata_language_label') or release.get('metadata_language') or '—'}",
         f"Дата выхода: {release.get('release_date_label') or release.get('release_date') or '—'}",
-        f"Explicit: {'Да' if release.get('is_explicit') else 'Нет'}",
         f"UPC: {release.get('upc') or 'Не назначен'}",
         f"Статус: {release.get('status_meta', {}).get('label', release.get('status') or '—')}",
         "",
@@ -2332,8 +2351,29 @@ async def logout(request: Request) -> RedirectResponse:
 async def privacy(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request=request,
-        name="privacy.html",
-        context=template_context(request),
+        name="legal.html",
+        context=template_context(
+            request,
+            document_title="Политика конфиденциальности",
+            document_text=_legal_text("privacy_policy.txt", "Политика конфиденциальности"),
+        ),
+    )
+
+
+@app.get("/offer", response_class=HTMLResponse)
+@app.get("/public-offer", response_class=HTMLResponse)
+async def public_offer(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="legal.html",
+        context=template_context(
+            request,
+            document_title="Публичная оферта — Лицензионное соглашение",
+            document_text=_legal_text(
+                "public_offer.txt",
+                "Публичная оферта - Лицензионное соглашение",
+            ),
+        ),
     )
 
 

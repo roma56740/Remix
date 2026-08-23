@@ -4,6 +4,35 @@
 {% block title %}Создание релиза — RAMIX MUSIC{% endblock %}
 
 {% block account_content %}
+{% set cover_help -%}
+Формат: .jpg, .png
+Минимальный размер: 1400×1400 px
+Максимальный размер: 6000×6000 px
+Разрешение: не менее 72 dpi
+Максимальный размер файла: 20 МБ
+
+Авторское право и уникальность: используйте только свои оригинальные изображения. Чужие работы без разрешения, бесплатные стоковые фото и ваши старые обложки запрещены.
+
+Достоверность: не вводите слушателей в заблуждение — например, не размещайте фото артиста, если его нет на релизе.
+
+Качество: изображение должно быть чётким, без размытия, пикселизации и смещений. Использование белой рамки вокруг обложки запрещено.
+
+Запрещённые элементы: на обложке не должно быть сайтов, логотипов, штрих-кодов, бейджей стримингов, любых дат (включая год), цен или рекламных фраз.
+
+Этика и цензура: недопустимы порнография и ссылки на неё, а также любой контент, разжигающий ненависть или дискриминацию.
+
+Нецензурная лексика: мат необходимо цензурировать — заблюрить или закрыть «звёздочкой» хотя бы один символ в слове.
+{%- endset %}
+{% set release_type_help -%}
+Single: содержит от 1 до 3 треков, каждый продолжительностью менее 10 минут.
+
+EP: содержит от 1 до 3 треков, один из которых длится не менее 10 минут, а общая продолжительность составляет 30 минут или менее. Также релиз может содержать от 4 до 6 треков общей продолжительностью не более 30 минут.
+
+Альбом: содержит 7 треков и/или более, общей продолжительностью более 30 минут.
+{%- endset %}
+{% set release_date_help -%}
+Минимальное время, требуемое для доставки релиза на площадки, — 3 дня. Мы рекомендуем планировать выпуск своего материала заранее и загружать релиз как минимум за 10 дней до необходимой даты.
+{%- endset %}
 <section class="release-page-head">
     <div>
         <h1>{{ 'Редактирование релиза' if release else 'Создание релиза' }}</h1>
@@ -23,36 +52,56 @@
 
     <div class="release-info-grid">
         <div class="cover-field {{ 'has-error' if errors.cover else '' }}">
-            <div class="flow-label flow-label-with-help"><span>Обложка релиза<b class="required-mark">*</b></span>{{ help('Загрузите квадратную обложку без ссылок, контактов, цен и логотипов площадок. Текст на изображении должен совпадать с названием релиза и именем артиста.') }}</div>
+            <div class="flow-label flow-label-with-help"><span>Обложка релиза<b class="required-mark">*</b></span>{{ help(cover_help, 'Подробнее') }}</div>
             <label class="cover-uploader" for="cover-input" data-cover-drop>
-                <input id="cover-input" type="file" name="cover" accept="image/jpeg,image/png,image/webp" {{ 'required' if not release or not release.cover_url else '' }} data-cover-input>
+                <input id="cover-input" type="file" name="cover" accept="image/jpeg,image/png" {{ 'required' if not release or not release.cover_url else '' }} data-cover-input>
                 <span class="cover-preview" data-cover-preview>
                     {% if release and release.cover_url %}<img src="{{ release.cover_url }}" alt="Текущая обложка релиза" data-cover-preview-image>{% else %}<img alt="Предпросмотр обложки" data-cover-preview-image hidden>{% endif %}
                     <span class="cover-placeholder" data-cover-placeholder {{ 'hidden' if release and release.cover_url else '' }}>
                         <svg><use href="#i-image"></use></svg>
                         <strong>{{ 'Заменить обложку' if release and release.cover_url else 'Загрузите обложку' }}</strong>
-                        <small>JPG, PNG или WEBP<br>квадрат от 1000×1000 px</small>
+                        <small>JPG или PNG<br>квадрат от 1400×1400 px</small>
                     </span>
                     <span class="cover-change">Выбрать изображение</span>
                 </span>
             </label>
-            <p class="field-message {{ 'is-error' if errors.cover else '' }}" data-cover-name>{{ errors.cover or ('Текущая обложка сохранится, если не выбирать новый файл.' if release and release.cover_url else 'Рекомендуемый размер — 3000×3000 px, до 15 МБ.') }}</p>
+            <p class="field-message {{ 'is-error' if errors.cover else '' }}" data-cover-name>{{ errors.cover or ('Текущая обложка сохранится, если не выбирать новый файл.' if release and release.cover_url else 'Размер — от 1400×1400 до 6000×6000 px, до 20 МБ.') }}</p>
         </div>
 
         <div class="release-fields">
             <label class="flow-field {{ 'has-error' if errors.title else '' }}">
-                {{ label('Название релиза', 'Пишите название без кавычек и CAPS LOCK. Не добавляйте имя артиста, тип релиза или служебные пометки, если они не являются частью официального названия.', true) }}
+                {{ label('Название релиза', 'Наименования на языках, использующих кириллицу, не должны быть представлены на транслите, если вы планируете отгрузку в Apple Music.', true) }}
                 <input type="text" name="title" value="{{ form.title }}" maxlength="160" placeholder="Например: Midnight Signal" autocomplete="off" required>
                 <small class="field-message {{ 'is-error' if errors.title else '' }}">{{ errors.title or 'Название без кавычек и лишних символов.' }}</small>
             </label>
 
+            <label class="flow-field {{ 'has-error' if errors.artist_name else '' }}">
+                {{ label('Название артиста', 'Введите имя артиста. Если их несколько, перечислите их через запятую или через feat. (Пример: Artist1, Artist2 или Artist1 feat. Artist2).', true) }}
+                <input type="text" name="artist_name" value="{{ form.artist_name }}" maxlength="200" placeholder="Artist1 или Artist1 feat. Artist2" autocomplete="off" required>
+                <small class="field-message {{ 'is-error' if errors.artist_name else '' }}">{{ errors.artist_name or 'Укажите написание, которое должно отображаться на площадках.' }}</small>
+            </label>
+
             <fieldset class="flow-field release-type-field {{ 'has-error' if errors.release_type else '' }}">
-                <legend>{{ label('Тип релиза', 'Single содержит один трек. EP — небольшой релиз из нескольких треков. Альбом — полноформатная работа. После отправки на модерацию тип нельзя менять без возврата в черновик.', true) }}</legend>
+                <legend>{{ label('Тип релиза', release_type_help, true) }}</legend>
                 <div class="release-radio-row">
                     {% for value, text in [('single','Single'),('ep','EP'),('album','Альбом')] %}<label class="release-radio"><input type="radio" name="release_type" value="{{ value }}" {{ 'checked' if form.release_type == value else '' }}><span></span>{{ text }}</label>{% endfor %}
                 </div>
-                <small class="field-message {{ 'is-error' if errors.release_type else '' }}">{{ errors.release_type or 'Single — один трек, EP и альбом — несколько треков.' }}</small>
+                <small class="field-message {{ 'is-error' if errors.release_type else '' }}">{{ errors.release_type or 'Single — 1–3 трека, EP — до 6 треков, альбом — от 7 треков.' }}</small>
             </fieldset>
+
+            <label class="flow-field {{ 'has-error' if errors.genre else '' }}">
+                {{ label('Основной жанр', 'Укажите основной жанр релиза.', true) }}
+                <input type="text" name="genre" value="{{ form.genre }}" maxlength="80" placeholder="Например: Поп, Хип-хоп, Рок" autocomplete="off" required>
+                <small class="field-message {{ 'is-error' if errors.genre else '' }}">{{ errors.genre or 'Укажите один основной жанр релиза.' }}</small>
+            </label>
+
+            <label class="flow-field {{ 'has-error' if errors.metadata_language else '' }}">
+                {{ label('Язык метаданных', 'Язык, на котором представлена информация о релизе.', true) }}
+                <select name="metadata_language" required>
+                    <option value="ru" {{ 'selected' if form.metadata_language == 'ru' else '' }}>Русский</option><option value="en" {{ 'selected' if form.metadata_language == 'en' else '' }}>Английский</option><option value="instrumental" {{ 'selected' if form.metadata_language == 'instrumental' else '' }}>Инструментал</option><option value="other" {{ 'selected' if form.metadata_language == 'other' else '' }}>Другой</option>
+                </select>
+                <small class="field-message {{ 'is-error' if errors.metadata_language else '' }}">{{ errors.metadata_language or 'Язык названия релиза и основной информации.' }}</small>
+            </label>
 
             <label class="flow-field {{ 'has-error' if errors.release_version else '' }}">
                 {{ label('Версия релиза', 'Укажите Remix, Acoustic, Live, Deluxe и другую версию только тогда, когда это действительно отдельная версия записи. Для оригинала оставьте поле пустым.') }}
@@ -60,30 +109,10 @@
                 <small class="field-message {{ 'is-error' if errors.release_version else '' }}">{{ errors.release_version or 'Оставьте пустым для оригинальной версии.' }}</small>
             </label>
 
-            <label class="flow-field {{ 'has-error' if errors.genre else '' }}">
-                {{ label('Основной жанр', 'Выберите один жанр, который точнее всего описывает релиз. Не перечисляйте несколько жанров через запятую — дополнительные характеристики можно указать позже.', true) }}
-                <input type="text" name="genre" value="{{ form.genre }}" maxlength="80" placeholder="Например: Поп, Хип-хоп, Рок" autocomplete="off" required>
-                <small class="field-message {{ 'is-error' if errors.genre else '' }}">{{ errors.genre or 'Укажите один основной жанр релиза.' }}</small>
-            </label>
-
-            <label class="flow-field {{ 'has-error' if errors.metadata_language else '' }}">
-                {{ label('Язык метаданных', 'Это язык, на котором написаны название релиза, версии и основные данные. Язык метаданных может отличаться от языка исполнения треков.', true) }}
-                <select name="metadata_language" required>
-                    <option value="ru" {{ 'selected' if form.metadata_language == 'ru' else '' }}>Русский</option><option value="en" {{ 'selected' if form.metadata_language == 'en' else '' }}>Английский</option><option value="instrumental" {{ 'selected' if form.metadata_language == 'instrumental' else '' }}>Инструментал</option><option value="other" {{ 'selected' if form.metadata_language == 'other' else '' }}>Другой</option>
-                </select>
-                <small class="field-message {{ 'is-error' if errors.metadata_language else '' }}">{{ errors.metadata_language or 'Язык названия релиза и основной информации.' }}</small>
-            </label>
-
             <label class="flow-field {{ 'has-error' if errors.release_date else '' }}">
-                {{ label('Планируемая дата выхода', 'Укажите желаемую дату публикации. Разные площадки могут обработать релиз в разное время, поэтому отправляйте материал заранее.', true) }}
+                {{ label('Планируемая дата выхода', release_date_help, true) }}
                 <input type="date" name="release_date" value="{{ form.release_date }}" min="{{ minimum_release_date }}" required>
                 <small class="field-message {{ 'is-error' if errors.release_date else '' }}">{{ errors.release_date or ('Рекомендуем выбрать дату не раньше ' ~ pitching_recommended_date_label ~ '.') }}</small>
-            </label>
-
-            <label class="flow-check release-explicit-check">
-                <input type="checkbox" name="is_explicit" {{ 'checked' if form.is_explicit else '' }}>
-                <span class="flow-check-box"><svg><use href="#i-check"></use></svg></span>
-                <span><strong>Explicit {{ help('Отметьте, если хотя бы один трек содержит ненормативную лексику, описание насилия, наркотиков или другой чувствительный контент. Метка будет передана площадкам.') }}</strong><small>В релизе есть ненормативная лексика или чувствительный контент.</small></span>
             </label>
         </div>
     </div>

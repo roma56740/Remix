@@ -15,12 +15,13 @@ BASE_DIR = Path(__file__).resolve().parent
 COVER_DIR = UPLOAD_ROOT / "covers"
 AUDIO_DIR = UPLOAD_ROOT / "audio"
 
-COVER_MAX_BYTES = 15 * 1024 * 1024
+COVER_MAX_BYTES = 20 * 1024 * 1024
 AUDIO_MAX_BYTES = 500 * 1024 * 1024
-COVER_MIN_SIDE = 1000
+COVER_MIN_SIDE = 1400
 COVER_MAX_SIDE = 6000
+COVER_MIN_DPI = 72
 
-ALLOWED_COVER_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+ALLOWED_COVER_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 ALLOWED_AUDIO_EXTENSIONS = {".wav", ".flac"}
 
 TIME_PATTERN = re.compile(r"^(?:(\d{1,2}):)?([0-5]?\d)$")
@@ -103,10 +104,6 @@ def _is_png(header: bytes) -> bool:
     return header.startswith(b"\x89PNG\r\n\x1a\n")
 
 
-def _is_webp(header: bytes) -> bool:
-    return len(header) >= 12 and header[:4] == b"RIFF" and header[8:12] == b"WEBP"
-
-
 def _is_wav(header: bytes) -> bool:
     return len(header) >= 12 and header[:4] == b"RIFF" and header[8:12] == b"WAVE"
 
@@ -122,7 +119,7 @@ async def save_cover_upload(upload: UploadFile | None) -> dict[str, Any] | None:
     ensure_upload_directories()
     extension = Path(upload.filename).suffix.lower()
     if extension not in ALLOWED_COVER_EXTENSIONS:
-        raise UploadValidationError("Обложка должна быть в формате JPG, PNG или WEBP.")
+        raise UploadValidationError("Обложка должна быть в формате JPG или PNG.")
 
     relative_path = _random_relative_path("covers", extension)
     target = UPLOAD_ROOT / relative_path
@@ -132,7 +129,6 @@ async def save_cover_upload(upload: UploadFile | None) -> dict[str, Any] | None:
         ".jpg": _is_jpeg,
         ".jpeg": _is_jpeg,
         ".png": _is_png,
-        ".webp": _is_webp,
     }[extension](header)
     if not valid_signature:
         target.unlink(missing_ok=True)
@@ -144,6 +140,7 @@ async def save_cover_upload(upload: UploadFile | None) -> dict[str, Any] | None:
         with Image.open(target) as image:
             width, height = image.size
             image_format = (image.format or "").upper()
+            dpi_value = image.info.get("dpi")
     except (UnidentifiedImageError, OSError, ValueError):
         target.unlink(missing_ok=True)
         raise UploadValidationError("Файл обложки повреждён или имеет неподдерживаемый формат.")
@@ -161,6 +158,17 @@ async def save_cover_upload(upload: UploadFile | None) -> dict[str, Any] | None:
         raise UploadValidationError(
             f"Максимальный размер обложки — {COVER_MAX_SIDE}×{COVER_MAX_SIDE} пикселей."
         )
+    numeric_dpi: list[float] = []
+    if isinstance(dpi_value, (int, float)):
+        numeric_dpi = [float(dpi_value)]
+    elif isinstance(dpi_value, (tuple, list)) and dpi_value:
+        numeric_dpi = [float(value) for value in dpi_value[:2] if isinstance(value, (int, float))]
+    if numeric_dpi:
+        if min(numeric_dpi) < COVER_MIN_DPI:
+            target.unlink(missing_ok=True)
+            raise UploadValidationError(
+                f"Разрешение обложки должно быть не менее {COVER_MIN_DPI} dpi."
+            )
 
     return {
         "path": relative_path,
